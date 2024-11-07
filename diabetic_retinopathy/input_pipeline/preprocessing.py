@@ -1,7 +1,11 @@
+import os
+
 import gin
 import tensorflow as tf
 import logging
 import pandas as pd
+import numpy as np
+import sys
 
 @gin.configurable
 def preprocess(image, label, img_height, img_width):
@@ -39,10 +43,21 @@ def create_dataset(img_dir, csv_dir, oversampling=True):
     df_dr = pd.concat([df_grade_rg_2, df_grade_rg_3, df_grade_rg_4])
 
     # visualize the number of available samples per class
-    logging.info('Samples of No DR: {}'.format(len(df_no_dr)))
-    logging.info('Samples of DR: {}'.format(len(df_dr)))
+    logging.info('Samples with No DR: {}'.format(len(df_no_dr)))
+    logging.info('Samples with DR: {}'.format(len(df_dr)))
 
     # define a new column/feature for dr
     df_dr['dr'] = 1
     df_no_dr['dr'] = 0
     df_sum = pd.concat([df_no_dr, df_dr])
+
+    data = []
+    for image in df_sum["Image name"]:
+        image_path = os.path.join(img_dir, image + '.jpg')
+        img = tf.io.read_file(image_path)
+        label = df_sum.loc[df_sum['Image name'] == image, 'dr'].values[0]
+        sample = [img, label]
+        data.append(sample)
+
+    np_data = np.array(data)
+    df_data = pd.DataFrame({'Image': np_data[:, 0], 'Label': np_data[:, 1]})
