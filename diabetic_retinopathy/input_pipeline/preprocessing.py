@@ -28,6 +28,14 @@ def augment(image, label):
 def create_dataset(img_dir, csv_dir, oversampling=True):
     logging.info('Generating new dataset....')
 
+    def preprocess_image(image_path):
+        img = tf.io.read_file(image_path)
+        # directly decode from format to uint8 scaling
+        img = tf.io.decode_image(img, dtype=tf.uint8)
+        # get the image to desired size
+        img = tf.image.resize(img, size=(256, 256))
+        return img
+
     # read image + label (retinopathy grade) from csv file
     df = pd.read_csv(csv_dir)
 
@@ -54,10 +62,9 @@ def create_dataset(img_dir, csv_dir, oversampling=True):
     data = []
     for image in df_sum["Image name"]:
         image_path = os.path.join(img_dir, image + '.jpg')
-        img = tf.io.read_file(image_path)
+        img = preprocess_image(image_path)
         label = df_sum.loc[df_sum['Image name'] == image, 'dr'].values[0]
         sample = [img, label]
         data.append(sample)
-
-    np_data = np.array(data)
+    np_data = np.asarray(data, dtype=object)
     df_data = pd.DataFrame({'Image': np_data[:, 0], 'Label': np_data[:, 1]})
