@@ -4,7 +4,8 @@ import logging
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from human_activity.input_pipeline.preprocessing import create_tfrecord_files
+from input_pipeline.preprocessing import create_tfrecord_files # For execution on ISS Server
+#from human_activity.input_pipeline.preprocessing import create_tfrecord_files # For local execution on Tim's computer
 
 @gin.configurable
 def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_size, buffer_size):
@@ -68,7 +69,8 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
 
         # Deserialize the byte-encoded tensors back to their original tensor formats
         window_feature = tf.io.parse_tensor(parsed_features['window_features'], out_type=tf.float64)
-        window_label = tf.io.parse_tensor(parsed_features['window_label'], out_type=tf.int32)
+        window_label = tf.io.parse_tensor(parsed_features['window_label'], out_type=tf.int64) # For execution on ISS Server
+        #window_label = tf.io.parse_tensor(parsed_features['window_label'], out_type=tf.int32) # For local execution on Tim's computer
 
         return window_feature, window_label
 
