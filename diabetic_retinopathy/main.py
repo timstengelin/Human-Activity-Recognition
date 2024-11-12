@@ -24,7 +24,11 @@ def main(argv):
     utils_params.save_config(run_paths['path_gin'], gin.config_str())
 
     # setup pipeline
-    ds_train, ds_val, ds_test, ds_info = datasets.load()
+    # Output for each dataset:
+    # <_TakeDataset element_spec=(TensorSpec(shape=(None, None, None), dtype=tf.uint8, name=None),
+    # TensorSpec(shape=(), dtype=tf.int64, name=None))>
+    # Images: 256x256x3; Label: 0/1 (0 -> noDR, 1 -> DR)
+    ds_train, ds_val, ds_test = datasets.load()
 
     # model
     model = vgg_like(input_shape=ds_info.features["image"].shape, n_classes=ds_info.features["label"].num_classes)
