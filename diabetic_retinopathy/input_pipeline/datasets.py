@@ -148,8 +148,8 @@ def load(load_record, img_dir, csv_dir):
         # Read both train and test set separately
         train_img_dir = img_dir + '/train'
         test_img_dir = img_dir + '/test'
-        train_csv_dir = csv_dir + '/labels/train.csv'
-        test_csv_dir = csv_dir + '/labels/test.csv'
+        train_csv_dir = csv_dir + '/train.csv'
+        test_csv_dir = csv_dir + '/test.csv'
         train_record_filename = './input_pipeline/records/train.tfrecord'
         test_record_filename = './input_pipeline/records/test.tfrecord'
         create_record(img_dir=train_img_dir, csv_dir=train_csv_dir, filename_record=train_record_filename)
