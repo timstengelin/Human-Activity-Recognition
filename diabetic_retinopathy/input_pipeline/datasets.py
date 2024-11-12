@@ -158,5 +158,6 @@ def load(load_record, img_dir, csv_dir):
     return train_set, val_set, test_set
 
 # TODO: Preprocessing of images (Resizing/Scaling/Cut because of black rounding)
+# TODO: Batching!
 # TODO: Provide a even distribution between classes (Resampling?)
 # TODO: Data augmentation (fliping etc.)
