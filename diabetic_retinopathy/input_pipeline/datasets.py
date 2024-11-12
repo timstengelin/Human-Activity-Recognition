@@ -33,6 +33,11 @@ def create_record(img_dir, csv_dir, filename_record):
 
     logging.info('Generating new tf_record....')
 
+    # check, whether records folder exists -> if not, create one
+    directory = os.path.dirname(filename_record)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     with tf.io.TFRecordWriter(filename_record) as writer:
         # read image + label (retinopathy grade) from csv file
         df = pd.read_csv(csv_dir)
