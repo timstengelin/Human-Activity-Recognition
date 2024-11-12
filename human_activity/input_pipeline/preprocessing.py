@@ -31,7 +31,7 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
         '''
 
         # Load the labels file using pandas
-        labels_dataframe = pd.read_csv("{}/HAPT Data Set/RawData/labels.txt".format(data_dir), sep=' ', header=None)
+        labels_dataframe = pd.read_csv("{}/HAPT_dataset/RawData/labels.txt".format(data_dir), sep=' ', header=None)
 
         # Create empty list
         experiment_labels_list = [[] for _ in range(61)]
@@ -58,10 +58,10 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
         '''
 
         # Get a list of all files in the raw data directory that start with 'acc' (for accelerometer)
-        acc_files = sorted([f for f in os.listdir('{}/HAPT Data Set/RawData/'.format(data_dir)) if f.startswith('acc')])
+        acc_files = sorted([f for f in os.listdir('{}/HAPT_dataset/RawData/'.format(data_dir)) if f.startswith('acc')])
 
         # Get a list of all files in the raw data directory that start with 'gyro' (for gyroscope)
-        gyro_files = sorted([f for f in os.listdir('{}/HAPT Data Set/RawData/'.format(data_dir)) if f.startswith('gyro')])
+        gyro_files = sorted([f for f in os.listdir('{}/HAPT_dataset/RawData/'.format(data_dir)) if f.startswith('gyro')])
 
         return acc_files, gyro_files
 
@@ -150,9 +150,9 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
             # Load data for a specific experiment
             acc_data = pd.read_csv(
-                '{}/HAPT Data Set/RawData/{}'.format(data_dir, acc_file), sep=' ', names=['x', 'y', 'z'])
+                '{}/HAPT_dataset/RawData/{}'.format(data_dir, acc_file), sep=' ', names=['x', 'y', 'z'])
             gyro_data = pd.read_csv(
-                '{}/HAPT Data Set/RawData/{}'.format(data_dir, gyro_file), sep=' ', names=['x', 'y', 'z'])
+                '{}/HAPT_dataset/RawData/{}'.format(data_dir, gyro_file), sep=' ', names=['x', 'y', 'z'])
 
             # Normalize data
             data = normalize_data(acc_data, gyro_data)
