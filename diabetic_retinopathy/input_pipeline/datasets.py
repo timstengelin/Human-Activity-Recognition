@@ -103,13 +103,38 @@ def prepare(ds_train, ds_val, ds_test, ds_info, batch_size, caching):
 
     return ds_train, ds_val, ds_test, ds_info
 
+def read_record(record_filename, train_val_split=1.0):
+    input_dataset = tf.data.TFRecordDataset(record_filename)
+    feature_description = {'label': tf.io.FixedLenFeature([], tf.int64, default_value=0),
+                           'image': tf.io.FixedLenFeature([], tf.string, default_value='')}
+    def _parse_function(example):
+        return tf.io.parse_single_example(example, feature_description)
+
+    parsed_dataset = input_dataset.map(_parse_function)
+
+    if train_val_split < 1.0:
+        count = 0
+        for _ in parsed_dataset:
+            count += 1
+        # shuffling, to prevent bias after splitting in train and val
+        dataset = parsed_dataset.map(lambda x: (tf.io.decode_jpeg(x['image']), x['label'])).shuffle(
+            buffer_size=count)
+        train_dataset = dataset.take(int(count*train_val_split))
+        val_dataset = dataset.skip(int(count*train_val_split))
+        return train_dataset, val_dataset
+
+    else:
+        dataset = parsed_dataset.map(lambda x: (tf.io.decode_jpeg(x['image']), x['label']))
+        return dataset
 
 @gin.configurable
-def load(load_record, train_val_split, train_img_dir, test_img_dir, train_csv_dir, test_csv_dir):
+def load(load_record, train_img_dir, test_img_dir, train_csv_dir, test_csv_dir):
     if load_record:
         logging.info('Loading dataset from tensorflow records....')
 
         #TODO:  read from record
+        train_set, val_set = read_record(record_filename='./input_pipeline/records/train.tfrecord', train_val_split=0.8)
+        test_set = read_record(record_filename='./input_pipeline/records/test.tfrecord')
     else:
         logging.info('Creating new tensorflow records from dataset....')
         # Read both train and test set separately
@@ -119,7 +144,7 @@ def load(load_record, train_val_split, train_img_dir, test_img_dir, train_csv_di
         #TODO: read from record
 
     #TODO: Do splitting
-    # return train_set, val_set, test_set
+    return train_set, val_set, test_set
 
 
 if __name__ == "__main__":
