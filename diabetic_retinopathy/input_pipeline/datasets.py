@@ -6,7 +6,7 @@ import tensorflow_datasets as tfds
 import pandas as pd
 import numpy as np
 
-def create_records(img_dir, csv_dir, filename_record):
+def create_record(img_dir, csv_dir, filename_record):
     # copied from tensorflow.org (wiki)
     def _int64_feature(value):
         """Returns an int64_list from a bool / enum / int / uint."""
@@ -128,25 +128,31 @@ def read_record(record_filename, train_val_split=1.0):
         return dataset
 
 @gin.configurable
-def load(load_record, train_img_dir, test_img_dir, train_csv_dir, test_csv_dir):
+def load(load_record, img_dir, csv_dir):
     if load_record:
         logging.info('Loading dataset from tensorflow records....')
 
-        #TODO:  read from record
-        train_set, val_set = read_record(record_filename='./input_pipeline/records/train.tfrecord', train_val_split=0.8)
-        test_set = read_record(record_filename='./input_pipeline/records/test.tfrecord')
+        train_record_filename = './input_pipeline/records/train.tfrecord'
+        test_record_filename = './input_pipeline/records/test.tfrecord'
+
+        train_set, val_set = read_record(record_filename=train_record_filename, train_val_split=0.8)
+        test_set = read_record(record_filename=test_record_filename)
     else:
         logging.info('Creating new tensorflow records from dataset....')
+
         # Read both train and test set separately
-        create_records(img_dir=train_img_dir, csv_dir=train_csv_dir, filename_record='./input_pipeline/records/train.tfrecord')
-        create_records(img_dir=test_img_dir, csv_dir=test_csv_dir, filename_record='./input_pipeline/records/test.tfrecord')
+        train_img_dir = img_dir + '/train'
+        test_img_dir = img_dir + '/test'
+        train_csv_dir = csv_dir + '/labels/train.csv'
+        test_csv_dir = csv_dir + '/labels/test.csv'
+        train_record_filename = './input_pipeline/records/train.tfrecord'
+        test_record_filename = './input_pipeline/records/test.tfrecord'
+        create_record(img_dir=train_img_dir, csv_dir=train_csv_dir, filename_record=train_record_filename)
+        create_record(img_dir=test_img_dir, csv_dir=test_csv_dir, filename_record=test_record_filename)
 
-        #TODO: read from record
+        logging.info('Created new record files from dataset....')
 
-    #TODO: Do splitting
+        train_set, val_set = read_record(record_filename=train_record_filename, train_val_split=0.8)
+        test_set = read_record(record_filename=test_record_filename)
+
     return train_set, val_set, test_set
-
-
-if __name__ == "__main__":
-    # erstelle tf record
-    load()
