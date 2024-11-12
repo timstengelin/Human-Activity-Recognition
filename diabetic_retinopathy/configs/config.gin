@@ -13,9 +13,6 @@ Trainer.log_interval = 1e4
 Trainer.ckpt_interval = 1e4
 
 # Input pipeline
-load.name = 'mnist'
-load.data_dir = '/home/data/tensorflow_datasets'
-preprocess.img_height = 28
-preprocess.img_width = 28
-prepare.batch_size = 32
-prepare.caching = False
+load.img_dir = '/misc/home/data/IDRID_dataset/images'
+load.csv_dir = '/misc/home/data/IDRID_dataset/labels'
+load.load_record = False
