@@ -8,6 +8,7 @@ __pycache__/
 
 # Custom
 experiments/
+human_activity/input_pipeline/tfrecord_files/
 
 # C extensions
 *.so
