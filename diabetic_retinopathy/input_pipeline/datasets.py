@@ -6,7 +6,8 @@ import tensorflow_datasets as tfds
 import pandas as pd
 import numpy as np
 
-def create_record(img_dir, csv_dir, filename_record):
+@gin.configurable
+def create_record(img_dir, csv_dir, filename_record, resampling):
     # copied from tensorflow.org (wiki)
     def _int64_feature(value):
         """Returns an int64_list from a bool / enum / int / uint."""
@@ -31,7 +32,7 @@ def create_record(img_dir, csv_dir, filename_record):
         img = tf.io.encode_jpeg(img, quality=99)
         return img
 
-    logging.info('Generating new tf_record....')
+    logging.info('Generating new tf record....')
 
     # check, whether records folder exists -> if not, create one
     directory = os.path.dirname(filename_record)
@@ -39,7 +40,7 @@ def create_record(img_dir, csv_dir, filename_record):
         os.makedirs(directory)
 
     with tf.io.TFRecordWriter(filename_record) as writer:
-        # read image + label (retinopathy grade) from csv file
+        # read image name + label (retinopathy grade) from csv file
         df = pd.read_csv(csv_dir)
 
         # separate teh different grades into separate dataframes
@@ -57,10 +58,22 @@ def create_record(img_dir, csv_dir, filename_record):
         logging.info('Samples with No DR: {}'.format(len(df_no_dr)))
         logging.info('Samples with DR: {}'.format(len(df_dr)))
 
+        if resampling:
+            logging.info('Resampling is activated...')
+            if len(df_no_dr) > len(df_dr):
+                df_dr = df_dr.sample(n=len(df_no_dr), replace=True)
+            else:
+                df_no_dr = df_no_dr.sample(n=len(df_dr), replace=True)
+        else:
+            logging.info('Resampling is deactivated...')
+
         # define a new column/feature for dr
         df_dr['dr'] = 1
         df_no_dr['dr'] = 0
         df_sum = pd.concat([df_no_dr, df_dr])
+        logging.info('Resampling completed, total samples: {}'.format(len(df_sum)))
+        logging.info('Distribution between classes (DR/nonDR): {}'.format(len(df_dr)/len(df_no_dr)))
+
 
         # read images -> preprocess -> save to tfrecord
         for image in df_sum["Image name"]:
@@ -164,5 +177,4 @@ def load(load_record, img_dir, csv_dir):
 
 # TODO: Preprocessing of images (Resizing/Scaling/Cut because of black rounding)
 # TODO: Batching!
-# TODO: Provide a even distribution between classes (Resampling?)
 # TODO: Data augmentation (fliping etc.)
