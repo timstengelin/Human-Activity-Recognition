@@ -32,7 +32,7 @@ def create_record(img_dir, csv_dir, filename_record, resampling):
         img = tf.io.encode_jpeg(img, quality=99)
         return img
 
-    logging.info('Generating new tf record....')
+    logging.info('  Starting generation of new tf record from following path: {}'.format(img_dir))
 
     # check, whether records folder exists -> if not, create one
     directory = os.path.dirname(filename_record)
@@ -55,26 +55,26 @@ def create_record(img_dir, csv_dir, filename_record, resampling):
         df_dr = pd.concat([df_grade_rg_2, df_grade_rg_3, df_grade_rg_4])
 
         # visualize the number of available samples per class
-        logging.info('Samples with No DR: {}'.format(len(df_no_dr)))
-        logging.info('Samples with DR: {}'.format(len(df_dr)))
+        logging.info('  Samples imported with No DR: {}'.format(len(df_no_dr)))
+        logging.info('  Samples imported with DR: {}'.format(len(df_dr)))
 
         if resampling:
-            logging.info('Resampling is activated...')
+            logging.info('  Resampling is activated...')
             if len(df_no_dr) > len(df_dr):
                 df_dr = df_dr.sample(n=len(df_no_dr), replace=True)
             else:
                 df_no_dr = df_no_dr.sample(n=len(df_dr), replace=True)
         else:
-            logging.info('Resampling is deactivated...')
+            logging.info('  Resampling is deactivated...')
 
         # define a new column/feature for dr
         df_dr['dr'] = 1
         df_no_dr['dr'] = 0
         df_sum = pd.concat([df_no_dr, df_dr])
-        logging.info('Resampling completed, total samples: {}'.format(len(df_sum)))
-        logging.info('Distribution between classes (DR/nonDR): {}'.format(len(df_dr)/len(df_no_dr)))
+        logging.info('  Resampling completed, total samples: {}'.format(len(df_sum)))
+        logging.info('  Distribution between classes (DR/nonDR): {}'.format(len(df_dr)/len(df_no_dr)))
 
-
+        logging.info('  Starting import of all images')
         # read images -> preprocess -> save to tfrecord
         for image in df_sum["Image name"]:
             image_path = os.path.join(img_dir, image + '.jpg')
@@ -87,6 +87,7 @@ def create_record(img_dir, csv_dir, filename_record, resampling):
             sample = tf.train.Example(features=tf.train.Features(feature=feature))
             # Add sample to open record
             writer.write(sample.SerializeToString())
+        logging.info('  Finished import of all images')
 
 
 @gin.configurable
@@ -122,6 +123,7 @@ def prepare(ds_train, ds_val, ds_test, ds_info, batch_size, caching):
     return ds_train, ds_val, ds_test, ds_info
 
 def read_record(record_filename, train_val_split=1.0):
+    logging.info('  Loading from following tf record: {}'.format(record_filename))
     input_dataset = tf.data.TFRecordDataset(record_filename)
     feature_description = {'label': tf.io.FixedLenFeature([], tf.int64, default_value=0),
                            'image': tf.io.FixedLenFeature([], tf.string, default_value='')}
@@ -129,8 +131,11 @@ def read_record(record_filename, train_val_split=1.0):
         return tf.io.parse_single_example(example, feature_description)
 
     parsed_dataset = input_dataset.map(_parse_function)
+    logging.info('  Dataset imported')
 
+    # path for training set with given parameter factor
     if train_val_split < 1.0:
+        logging.info('  Splitting train set into train-/val-set with factor: {}'.format(train_val_split))
         count = 0
         for _ in parsed_dataset:
             count += 1
@@ -142,36 +147,33 @@ def read_record(record_filename, train_val_split=1.0):
         return train_dataset, val_dataset
 
     else:
+        logging.info('  Just test set without any splitting')
         dataset = parsed_dataset.map(lambda x: (tf.io.decode_jpeg(x['image']), x['label']))
         return dataset
 
 @gin.configurable
 def load(load_record, img_dir, csv_dir):
-    if load_record:
-        logging.info('Loading dataset from tensorflow records....')
-
-        train_record_filename = './input_pipeline/records/train.tfrecord'
-        test_record_filename = './input_pipeline/records/test.tfrecord'
-
-        train_set, val_set = read_record(record_filename=train_record_filename, train_val_split=0.8)
-        test_set = read_record(record_filename=test_record_filename)
-    else:
-        logging.info('Creating new tensorflow records from dataset....')
+    train_record_filename = './input_pipeline/records/train.tfrecord'
+    test_record_filename = './input_pipeline/records/test.tfrecord'
+    if not load_record:
+        logging.info('Creation of new tensorflow records from dataset started')
 
         # Read both train and test set separately
         train_img_dir = img_dir + '/train'
         test_img_dir = img_dir + '/test'
         train_csv_dir = csv_dir + '/train.csv'
         test_csv_dir = csv_dir + '/test.csv'
-        train_record_filename = './input_pipeline/records/train.tfrecord'
-        test_record_filename = './input_pipeline/records/test.tfrecord'
         create_record(img_dir=train_img_dir, csv_dir=train_csv_dir, filename_record=train_record_filename)
         create_record(img_dir=test_img_dir, csv_dir=test_csv_dir, filename_record=test_record_filename)
 
-        logging.info('Created new record files from dataset....')
+        logging.info('Creation of new record files from dataset finished')
 
-        train_set, val_set = read_record(record_filename=train_record_filename, train_val_split=0.8)
-        test_set = read_record(record_filename=test_record_filename)
+    logging.info('Loading dataset from tensorflow records started')
+
+    train_set, val_set = read_record(record_filename=train_record_filename, train_val_split=0.8)
+    test_set = read_record(record_filename=test_record_filename)
+
+    logging.info('Loading dataset from tensorflow records finished')
 
     return train_set, val_set, test_set
 
