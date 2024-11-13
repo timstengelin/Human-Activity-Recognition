@@ -8,6 +8,7 @@ __pycache__/
 
 # Custom
 experiments/
+diabetic_retinopathy/input_pipeline/records/
 
 # C extensions
 *.so
