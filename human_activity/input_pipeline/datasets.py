@@ -2,7 +2,6 @@ import os
 import gin
 import logging
 import tensorflow as tf
-import tensorflow_datasets as tfds
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -69,8 +68,7 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
 
         # Deserialize the byte-encoded tensors back to their original tensor formats
         window_feature = tf.io.parse_tensor(parsed_features['window_features'], out_type=tf.float64)
-        window_label = tf.io.parse_tensor(parsed_features['window_label'], out_type=tf.int64) # For execution on ISS Server
-        #window_label = tf.io.parse_tensor(parsed_features['window_label'], out_type=tf.int32) # For local execution on Tim's computer
+        window_label = tf.io.parse_tensor(parsed_features['window_label'], out_type=tf.int32)
 
         return window_feature, window_label
 
@@ -112,7 +110,9 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
         Returns:
             experiment_labels_list (list):
-                A list of 61 sublists, where each sublist contains labels for a specific experiment
+                A list of 61 sublists of multiple subsublists,
+                where each sublist represents the labels/activities of an experiment,
+                and each subsublist representing a label/activity
         '''
 
         # Load the labels file using pandas
@@ -132,14 +132,16 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
     def load_data_files(data_dir):
         '''
-        Retrieves accelerometer and gyroscope files
+        Retrieves accelerometer and gyroscope file names
 
         Args:
             data_dir (string): directory where the original data is stored
 
         Returns:
-            acc_files (list): A list of accelerometer file names
-            gyro_files (list): A list of gyroscope file names
+            acc_files (list):
+                A list of 61 elements, where each element is an accelerometer file name for an experiment
+            gyro_files (list):
+                A list of 61 element, where each element is a gyroscope file name for an experiment
         '''
 
         # Get a list of all files in the raw data directory that start with 'acc' (for accelerometer)
@@ -160,7 +162,9 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
             gyro_data (pandas.DataFrame): A DataFrame containing gyroscope data with columns 'x', 'y', 'z'
 
         Returns:
-            (numpy.ndarray): 2D array with 6 columns representing the 6 features and each row representing a data point
+            (numpy.ndarray): 2D array with 6 columns,
+                    each column representing one of the 6 features,
+                    and each row representing a data point in an experiment
         '''
 
         # Normalize accelerometer data for each axis ('x', 'y', 'z') using Z-score
@@ -180,17 +184,20 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
     def assign_activitynumberids_to_array(experiment_length, experiment_labels):
         '''
-        Assign activity number ids to an array of the experiment length
+        Assigns activity number ids to an array with the length of the number of data points in an experiment
 
         Args:
-            experiment_length (int): The length/number of data points in an experiment
-            experiment_labels (list): The labels for a specific experiment
+            experiment_length (int): The number of data points in an experiment
+            experiment_labels (list):
+                A list of multiple sublists,
+                where each sublist represents a label/activity
 
         Returns:
-            labels_sequence (): An array of the experiment length with assigned activity number ids
+            labels_sequence (ndarray): An 1D-array with the length of the number of data points in an experiment,
+                where each element represents the current activity for this datapoint with its activity number id
         '''
 
-        labels_sequence = np.zeros(experiment_length, dtype=int)
+        labels_sequence = np.zeros(experiment_length, dtype=np.int32)
 
         # Loop over all experiment labels
         for experiment_label in experiment_labels:
@@ -209,24 +216,39 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
         training, validation, and test sets
 
         Args:
-            acc_files (list): A list of accelerometer file names
-            gyro_files (list): A list of gyroscope file names
+            acc_files (list):
+                A list of 61 elements, where each element is an accelerometer file name for an experiment
+            gyro_files (list):
+                A list of 61 element, where each element is a gyroscope file name for an experiment
             experiment_labels_list (list):
-                A List of 61 sublists, where each sublist contains labels for a specific experiment
+                A list of 61 sublists of multiple subsublists,
+                where each sublist represents the labels/activities of an experiment,
+                and each subsublist representing a label/activity
             data_dir (string): directory where the original data is stored
 
         Returns:
-            train_features (numpy.ndarray): An array of feature data for training
-            train_labels (numpy.ndarray): An array of label data corresponding to features for training
-            val_features (numpy.ndarray): An array of feature data for validation
-            val_labels (numpy.ndarray): An array of label data corresponding to features for validation
-            test_features (numpy.ndarray): An array of feature data for testing
-            test_labels (numpy.ndarray): An array of label data corresponding to features for testing
+            train_features (numpy.ndarray): An 2D-array of feature data for training
+            train_labels (numpy.ndarray): An 1D-array of label data for training
+            val_features (numpy.ndarray): An 2D-array of feature data for validation
+            val_labels (numpy.ndarray): An 1D-array of label data for validation
+            test_features (numpy.ndarray): An 2D-array of feature data for testing
+            test_labels (numpy.ndarray): An 1D-array of label data for testing
         '''
 
         def load_and_process_data(experiment_id):
             '''
             Loads accelerometer and gyroscope data for a specific experiment
+
+            Args:
+                experiment_id (int): experiment number ID
+
+            Returns:
+                data (numpy.ndarray): 2D array with 6 columns,
+                    each column representing one of the 6 features,
+                    and each row representing a data point in an experiment
+                labels_sequence (ndarray): An 1D-array with the length of the number of data points in an experiment,
+                    where each element represents the current activity for this datapoint with its activity number id
+
             '''
 
             # Load file names for specific experiment
@@ -242,7 +264,7 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
             # Normalize data
             data = normalize_data(acc_data, gyro_data)
 
-            # Assign activity number ids to an array of the experiment length
+            # Assign activity number ids to an array with the length of the number of data points in an experiment
             labels_sequence = assign_activitynumberids_to_array(len(acc_data), experiment_labels_list[experiment_id - 1])
 
             return data, labels_sequence
@@ -250,7 +272,21 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
         def split_data(experiment_ids):
             '''
             Splits data and labels according to experiment ranges for predefined split of the dataset
+
+            Args:
+                experiment_ids (list): List of experiment IDs to process
+
+            Returns:
+                (ndarray): A 2D-array
+                    with 6 columns,
+                    and [sum of number of data points for every experiment belonging to the experiment range] rows
+                    each column representing one of the 6 features,
+                    and each row representing a data point
+                (ndarray): An 1D-array
+                    with [sum of number of data points for every experiment belonging to the experiment range] elements
+                    where each element represents the current activity for this datapoint with its activity number id
             '''
+
             data_part, labels_sequence_part = zip(*[load_and_process_data(experiment_id) for experiment_id in experiment_ids])
             return np.concatenate(data_part), np.concatenate(labels_sequence_part)
 
@@ -274,10 +310,10 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
         # Create TensorFlow dataset
         dataset = tf.data.Dataset.from_tensor_slices((features, labels))
 
-        # Apply a sliding window to the dataset
+        # Apply sliding window technique to the dataset
         dataset_windows = dataset.window(size=window_size, shift=window_shift, drop_remainder=True)
 
-        # Flatten the dataset of windows
+        # Flatten the dataset of batching (flatten each window into a single batch of data)
         dataset_flattened_windows = dataset_windows.flat_map(
             lambda x, y: tf.data.Dataset.zip((x.batch(window_size), y.batch(window_size))))
 
@@ -289,7 +325,7 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
         Writes a TensorFlow dataset to a TFRecord file
 
         Args:
-            dataset (tf.data.Dataset): A TensorFlow dataset with sliding windows of features and labels
+            dataset (tf.data.Dataset): A TensorFlow dataset
             filepath (): The path to save the TFRecord file
 
         References:
@@ -325,15 +361,15 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
 
     # Set experiment ranges for predefined split of dataset
-    train_experiment_ids = range(1, 43+1) # Train dataset: (user-01 to user-21) leads to (experiment-01 to experiment-43)
-    val_experiment_ids = range(56, 61+1) # Validation dataset: (user-28 to user-30) leads to (experiment-56 to experiment-61)
-    test_experiment_ids = range(44, 55+1) # Test dataset: (user-22 to user-27) leads to (experiment-44 to experiment-55)
-    total_experiment_ids = range(1, 61+1) # Total dataset: (user-01 to user-30) leads to (experiment-01 to experiment-61)
+    train_experiment_ids = range(1, 43+1) # Train dataset: (user 01 to user 21) leads to (experiment 01 to experiment 43)
+    val_experiment_ids = range(56, 61+1) # Validation dataset: (user 28 to user 30) leads to (experiment 56 to experiment 61)
+    test_experiment_ids = range(44, 55+1) # Test dataset: (user 22 to user 27) leads to (experiment 44 to experiment 55)
+    total_experiment_ids = range(1, 61+1) # Total dataset: (user 01 to user 30) leads to (experiment 01 to experiment 61)
 
     # Load and organize labels
     experiment_labels_list = load_labels(data_dir)
 
-    # Retrieve accelerometer and gyroscope files
+    # Retrieve accelerometer and gyroscope file names
     acc_files, gyro_files = load_data_files(data_dir)
 
     # Split the features and labels for accelerometer and gyroscope data based on experiment IDs into
