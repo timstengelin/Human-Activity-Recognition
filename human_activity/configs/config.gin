@@ -8,14 +8,16 @@ vgg_like.dropout_rate = 0.2
 vgg_block.kernel_size = (3, 3)
 
 # Training
-Trainer.total_steps = 2e4 #1e5
+Trainer.total_steps = 2e4 #1e5 #TS: für kürzere Trainingszeit
 Trainer.log_interval = 1e4
 Trainer.ckpt_interval = 1e4
 
 # Input pipeline
-load.name = 'mnist'
-load.data_dir = '/home/data/tensorflow_datasets'
-preprocess.img_height = 28
-preprocess.img_width = 28
-prepare.batch_size = 32
-prepare.caching = False
+load.name = 'hapt'
+load.data_dir =  '/home/data' # For execution on ISS Server
+#load.data_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/HAPT_dataset' # For local execution on Tim's computer
+load.tfrecord_files_exist = False # If false, TFRecord file are created for selected window size and window shift
+load.window_size = 250 # Length of a single time window
+load.window_shift = 125 # Number of samples the sliding window moves forward after each training step
+load.batch_size = 512 # Number of windows passed to the model in one training step
+load.buffer_size = 1024 # Number of windows kept in memory for shuffling before batching
