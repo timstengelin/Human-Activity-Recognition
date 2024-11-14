@@ -2,9 +2,7 @@ import gin
 import logging
 import tensorflow as tf
 import os
-import tensorflow_datasets as tfds
 import pandas as pd
-import numpy as np
 
 def create_record(img_dir, csv_dir, filename_record, resampling):
     # copied from tensorflow.org (wiki)
@@ -134,12 +132,20 @@ def prepare_dataset(dataset, augmentation, batch_size, caching):
     def _normalize(image):
         return tf.cast(image, tf.float32) / 255.
 
+    # keras model for data augmentation
+    data_augmentation = tf.keras.Sequential([
+        tf.keras.layers.RandomFlip("horizontal_and_vertical"),
+        tf.keras.layers.RandomRotation(0.2),
+        tf.keras.layers.RandomContrast(factor=(0.1, 0.9)),
+        tf.keras.layers.RandomBrightness(factor=(0.0, 1.0))
+    ])
+
     if caching:
         dataset = dataset.cache()
     # used for training set
     if augmentation:
         logging.info('  Augmenting images for training dataset...')
-        # dataset = dataset.map(augment)
+        dataset = dataset.map(lambda x: (data_augmentation(x['image']), x['label']))
 
     # normalize whole dataset
     logging.info('  Normalizing images of dataset...')
