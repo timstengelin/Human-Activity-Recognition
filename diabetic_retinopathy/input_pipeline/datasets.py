@@ -193,9 +193,3 @@ def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, ba
     logging.info('Finished preparation (and augmentation) of datasets...')
 
     return train_set, val_set, test_set
-
-# TODO: Augmentation??
-
-# TODO: Taking notes why what is done when (All optimization possibilities after reading from record-> Possibility to tune)
-# TF records is just basic reading and saving of images with their extracted label
-# Augmentation (e.g. some contrast stuff, flipping etc) _> Maybe config/parameter for tuning
