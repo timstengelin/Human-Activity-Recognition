@@ -145,11 +145,11 @@ def prepare_dataset(dataset, augmentation, batch_size, caching):
     # used for training set
     if augmentation:
         logging.info('  Augmenting images for training dataset...')
-        dataset = dataset.map(lambda x: (data_augmentation(x['image']), x['label']))
+        dataset = dataset.map(lambda image, label: (data_augmentation(image), label))
 
     # normalize whole dataset
     logging.info('  Normalizing images of dataset...')
-    dataset = dataset.map(lambda x: (_normalize(x['image']), x['label']))
+    dataset = dataset.map(lambda image, label: (_normalize(image), label))
 
     count = 0
     for _ in dataset:
@@ -162,7 +162,7 @@ def prepare_dataset(dataset, augmentation, batch_size, caching):
 
     return dataset
 @gin.configurable
-def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, batch_size):
+def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, batch_size, augmentation):
     train_record_filename = './input_pipeline/records/train.tfrecord'
     test_record_filename = './input_pipeline/records/test.tfrecord'
     if not load_record:
@@ -187,7 +187,7 @@ def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, ba
 
     # Preparation and augmentation (only for training data)
     logging.info('Starting preparation (and augmentation) of datasets...')
-    train_set = prepare_dataset(train_set, augmentation=True, batch_size=batch_size, caching=caching)
+    train_set = prepare_dataset(train_set, augmentation=augmentation, batch_size=batch_size, caching=caching)
     val_set = prepare_dataset(val_set, augmentation=False, batch_size=batch_size, caching=caching)
     test_set = prepare_dataset(test_set, augmentation=False, batch_size=batch_size, caching=caching)
     logging.info('Finished preparation (and augmentation) of datasets...')
