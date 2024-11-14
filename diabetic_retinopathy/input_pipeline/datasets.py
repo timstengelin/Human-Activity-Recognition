@@ -19,7 +19,7 @@ def create_record(img_dir, csv_dir, filename_record, resampling):
             value = value.numpy()  # BytesList won't unpack a string from an EagerTensor.
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
-    def preprocess_image(image_path):
+    def _preprocess_image(image_path):
         img = tf.io.read_file(image_path)
         # directly decode from autodetect format to uint8 scaling representation
         img = tf.io.decode_image(img, dtype=tf.uint8)
@@ -88,7 +88,7 @@ def create_record(img_dir, csv_dir, filename_record, resampling):
         # read images -> preprocess -> save to tfrecord
         for image in df_sum["Image name"]:
             image_path = os.path.join(img_dir, image + '.jpg')
-            img = preprocess_image(image_path)
+            img = _preprocess_image(image_path)
             label = df_sum.loc[df_sum['Image name'] == image, 'dr'].values[0]
             feature = {'label': _int64_feature(label),
                        'image': _bytes_feature(img)}
@@ -98,39 +98,6 @@ def create_record(img_dir, csv_dir, filename_record, resampling):
             # Add sample to open record
             writer.write(sample.SerializeToString())
         logging.info('  Finished import of all images')
-
-
-@gin.configurable
-def prepare(ds_train, ds_val, ds_test, ds_info, batch_size, caching):
-    # Prepare training dataset
-    ds_train = ds_train.map(
-        preprocess, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    if caching:
-        ds_train = ds_train.cache()
-    ds_train = ds_train.map(
-        augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples // 10)
-    ds_train = ds_train.batch(batch_size)
-    ds_train = ds_train.repeat(-1)
-    ds_train = ds_train.prefetch(tf.data.experimental.AUTOTUNE)
-
-    # Prepare validation dataset
-    ds_val = ds_val.map(
-        preprocess, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    ds_val = ds_val.batch(batch_size)
-    if caching:
-        ds_val = ds_val.cache()
-    ds_val = ds_val.prefetch(tf.data.experimental.AUTOTUNE)
-
-    # Prepare test dataset
-    ds_test = ds_test.map(
-        preprocess, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    ds_test = ds_test.batch(batch_size)
-    if caching:
-        ds_test = ds_test.cache()
-    ds_test = ds_test.prefetch(tf.data.experimental.AUTOTUNE)
-
-    return ds_train, ds_val, ds_test, ds_info
 
 def read_record(record_filename, train_val_split=1.0):
     logging.info('  Loading from following tf record: {}'.format(record_filename))
@@ -164,12 +131,20 @@ def read_record(record_filename, train_val_split=1.0):
         dataset = parsed_dataset.map(lambda x: (tf.io.decode_jpeg(x['image']), x['label']))
         return dataset
 def prepare_dataset(dataset, augmentation, batch_size, caching):
+    def _normalize(image):
+        return tf.cast(image, tf.float32) / 255.
+
     if caching:
         dataset = dataset.cache()
     # used for training set
     if augmentation:
         logging.info('  Augmenting images for training dataset...')
         # dataset = dataset.map(augment)
+
+    # normalize whole dataset
+    logging.info('  Normalizing images of dataset...')
+    dataset = dataset.map(lambda x: (_normalize(x['image']), x['label']))
+
     count = 0
     for _ in dataset:
         count += 1
@@ -200,10 +175,8 @@ def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, ba
         logging.info('Creation of new record files from dataset finished')
 
     logging.info('Loading dataset from tensorflow records started')
-
     train_set, val_set = read_record(record_filename=train_record_filename, train_val_split=train_val_split)
     test_set = read_record(record_filename=test_record_filename)
-
     logging.info('Loading dataset from tensorflow records finished')
 
     # Preparation and augmentation (only for training data)
@@ -214,3 +187,9 @@ def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, ba
     logging.info('Finished preparation (and augmentation) of datasets...')
 
     return train_set, val_set, test_set
+
+# TODO: Augmentation??
+
+# TODO: Taking notes why what is done when (All optimization possibilities after reading from record-> Possibility to tune)
+# TF records is just basic reading and saving of images with their extracted label
+# Augmentation (e.g. some contrast stuff, flipping etc) _> Maybe config/parameter for tuning
