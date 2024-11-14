@@ -6,7 +6,6 @@ import tensorflow_datasets as tfds
 import pandas as pd
 import numpy as np
 
-@gin.configurable
 def create_record(img_dir, csv_dir, filename_record, resampling):
     # copied from tensorflow.org (wiki)
     def _int64_feature(value):
@@ -181,7 +180,7 @@ def prepare_dataset(dataset, augmentation, batch_size, caching):
 
     return dataset
 @gin.configurable
-def load(load_record, img_dir, csv_dir):
+def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, batch_size):
     train_record_filename = './input_pipeline/records/train.tfrecord'
     test_record_filename = './input_pipeline/records/test.tfrecord'
     if not load_record:
@@ -192,23 +191,25 @@ def load(load_record, img_dir, csv_dir):
         test_img_dir = img_dir + '/test'
         train_csv_dir = csv_dir + '/train.csv'
         test_csv_dir = csv_dir + '/test.csv'
-        create_record(img_dir=train_img_dir, csv_dir=train_csv_dir, filename_record=train_record_filename)
-        create_record(img_dir=test_img_dir, csv_dir=test_csv_dir, filename_record=test_record_filename)
+        create_record(img_dir=train_img_dir, csv_dir=train_csv_dir, filename_record=train_record_filename,
+                      resampling=resampling)
+        create_record(img_dir=test_img_dir, csv_dir=test_csv_dir, filename_record=test_record_filename,
+                      resampling=resampling)
 
         logging.info('Creation of new record files from dataset finished')
 
     logging.info('Loading dataset from tensorflow records started')
 
-    train_set, val_set = read_record(record_filename=train_record_filename, train_val_split=0.8)
+    train_set, val_set = read_record(record_filename=train_record_filename, train_val_split=train_val_split)
     test_set = read_record(record_filename=test_record_filename)
 
     logging.info('Loading dataset from tensorflow records finished')
 
-    # Preparation and augmentation if needed
+    # Preparation and augmentation (only for training data)
     logging.info('Starting preparation (and augmentation) of datasets...')
-    train_set = prepare_dataset(train_set, augmentation=True, batch_size=32, caching=True)
-    val_set = prepare_dataset(val_set, augmentation=False, batch_size=32, caching=True)
-    test_set = prepare_dataset(test_set, augmentation=False, batch_size=32, caching=True)
+    train_set = prepare_dataset(train_set, augmentation=True, batch_size=batch_size, caching=caching)
+    val_set = prepare_dataset(val_set, augmentation=False, batch_size=batch_size, caching=caching)
+    test_set = prepare_dataset(test_set, augmentation=False, batch_size=batch_size, caching=caching)
     logging.info('Finished preparation (and augmentation) of datasets...')
 
     return train_set, val_set, test_set
