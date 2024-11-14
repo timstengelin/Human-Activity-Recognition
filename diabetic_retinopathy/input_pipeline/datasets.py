@@ -22,14 +22,25 @@ def create_record(img_dir, csv_dir, filename_record, resampling):
 
     def preprocess_image(image_path):
         img = tf.io.read_file(image_path)
-        # directly decode from format to uint8 scaling
+        # directly decode from autodetect format to uint8 scaling representation
         img = tf.io.decode_image(img, dtype=tf.uint8)
-        # get the image to desired size
+        # crop images to remove black boxes in right and left part
+        # left box width = 266
+        # right box width = 596
+        # new target width with just eye: 4288-266-596 = 3426
+        img = tf.image.crop_to_bounding_box(img, offset_height=0, offset_width=266, target_height=2848,
+                                            target_width=3426)
+        # still no quadratic view of eye -> padding needed
+        # use padding to get desired shape of 3426x3426
+        # new padding offset: (3426-2848)/2 = 289
+        img = tf.image.pad_to_bounding_box(img, offset_height=289, offset_width=0, target_height=3426,
+                                           target_width=3426)
+        # resize the images to smaller size according to exercise
         img = tf.image.resize(img, size=(256, 256))
-        # cast again to uint8
+        # ensure range of uint8
         img = tf.cast(img, tf.uint8)
-        # encode img again
-        img = tf.io.encode_jpeg(img, quality=99)
+        # encode img with jpeg format to tensor
+        img = tf.io.encode_jpeg(img, quality=100, format='rgb')
         return img
 
     logging.info('  Starting generation of new tf record from following path: {}'.format(img_dir))
@@ -176,7 +187,6 @@ def load(load_record, img_dir, csv_dir):
     logging.info('Loading dataset from tensorflow records finished')
 
     return train_set, val_set, test_set
-
-# TODO: Preprocessing of images (Resizing/Scaling/Cut because of black rounding)
 # TODO: Batching!
 # TODO: Data augmentation (fliping etc.)
+# TODO: Improve timing (prefetching, autotune etc.)
