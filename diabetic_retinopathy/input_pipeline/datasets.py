@@ -174,7 +174,8 @@ def prepare_dataset(dataset, augmentation, batch_size, caching):
     for _ in dataset:
         count += 1
     dataset = dataset.shuffle(buffer_size=count,reshuffle_each_iteration=True)
-    dataset = dataset.batch(batch_size)
+    dataset = dataset.batch(batch_size, drop_remainder=True,
+                            num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.repeat(-1)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
