@@ -150,18 +150,36 @@ def read_record(record_filename, train_val_split=1.0):
         count = 0
         for _ in parsed_dataset:
             count += 1
+        # decode jpeg again
         # shuffling, to prevent bias after splitting in train and val
         dataset = parsed_dataset.map(lambda x: (tf.io.decode_jpeg(x['image']), x['label'])).shuffle(
             buffer_size=count)
+        # split dataset according to given split
         train_dataset = dataset.take(int(count*train_val_split))
         val_dataset = dataset.skip(int(count*train_val_split))
         return train_dataset, val_dataset
 
     else:
         logging.info('  Just test set without any splitting')
+        # decode jpeg again
         dataset = parsed_dataset.map(lambda x: (tf.io.decode_jpeg(x['image']), x['label']))
         return dataset
+def prepare_dataset(dataset, augmentation, batch_size, caching):
+    if caching:
+        dataset = dataset.cache()
+    # used for training set
+    if augmentation:
+        logging.info('  Augmenting images for training dataset...')
+        # dataset = dataset.map(augment)
+    count = 0
+    for _ in dataset:
+        count += 1
+    dataset = dataset.shuffle(buffer_size=count,reshuffle_each_iteration=True)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.repeat(-1)
+    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
+    return dataset
 @gin.configurable
 def load(load_record, img_dir, csv_dir):
     train_record_filename = './input_pipeline/records/train.tfrecord'
@@ -186,7 +204,11 @@ def load(load_record, img_dir, csv_dir):
 
     logging.info('Loading dataset from tensorflow records finished')
 
+    # Preparation and augmentation if needed
+    logging.info('Starting preparation (and augmentation) of datasets...')
+    train_set = prepare_dataset(train_set, augmentation=True, batch_size=32, caching=True)
+    val_set = prepare_dataset(val_set, augmentation=False, batch_size=32, caching=True)
+    test_set = prepare_dataset(test_set, augmentation=False, batch_size=32, caching=True)
+    logging.info('Finished preparation (and augmentation) of datasets...')
+
     return train_set, val_set, test_set
-# TODO: Batching!
-# TODO: Data augmentation (fliping etc.)
-# TODO: Improve timing (prefetching, autotune etc.)
