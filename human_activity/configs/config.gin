@@ -20,4 +20,3 @@ load.tfrecord_files_exist = False # If false, TFRecord file are created for sele
 load.window_size = 250 # Length of a single time window
 load.window_shift = 125 # Number of samples the sliding window moves forward after each training step
 load.batch_size = 512 # Number of windows passed to the model in one training step
-load.buffer_size = 1024 # Number of windows kept in memory for shuffling before batching

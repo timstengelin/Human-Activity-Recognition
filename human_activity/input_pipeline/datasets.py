@@ -7,7 +7,7 @@ import pandas as pd
 from scipy import stats
 
 @gin.configurable
-def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_size, buffer_size):
+def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_size):
     '''
     Loads and prepares data from files
 
@@ -17,7 +17,6 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
         window_size (int): length of the sliding window
         window_shift (int): amount of shift/slide of the sliding window
         batch_size (int): size of the batch
-        buffer_size (int): size of the buffer
 
     Returns:
         ds_train (tf.data.Dataset): training dataset
@@ -78,7 +77,8 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
     ds_test = tf.data.TFRecordDataset(ds_test_path).map(parse_example)
 
     # Shuffle, batch, repeat training dataset
-    ds_train = ds_train.shuffle(buffer_size).batch(batch_size).repeat().prefetch(tf.data.AUTOTUNE)
+    num_train_samples = sum(1 for _ in ds_train)                                                            # complete shuffle
+    ds_train = ds_train.shuffle(num_train_samples).batch(batch_size).repeat().prefetch(tf.data.AUTOTUNE)    #
     # Batch the validation and test datasets
     ds_val = ds_val.batch(batch_size).prefetch(tf.data.AUTOTUNE)
     num_test_samples = sum(1 for _ in ds_test)                              # all test data processed in single batch
