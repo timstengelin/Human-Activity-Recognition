@@ -7,7 +7,7 @@ import pandas as pd
 from scipy import stats
 
 @gin.configurable
-def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_size, buffer_size):
+def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_size):
     '''
     Loads and prepares data from files
 
@@ -17,7 +17,6 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
         window_size (int): length of the sliding window
         window_shift (int): amount of shift/slide of the sliding window
         batch_size (int): size of the batch
-        buffer_size (int): size of the buffer
 
     Returns:
         ds_train (tf.data.Dataset): training dataset
@@ -78,11 +77,12 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
     ds_test = tf.data.TFRecordDataset(ds_test_path).map(parse_example)
 
     # Shuffle, batch, repeat training dataset
-    ds_train = ds_train.shuffle(buffer_size).batch(batch_size).repeat()
+    num_train_samples = sum(1 for _ in ds_train)                                                            # complete shuffle
+    ds_train = ds_train.shuffle(num_train_samples).batch(batch_size).repeat().prefetch(tf.data.AUTOTUNE)    #
     # Batch the validation and test datasets
-    ds_val = ds_val.batch(batch_size)
-    num_test_samples = sum(1 for _ in ds_test)
-    ds_test = ds_test.batch(num_test_samples)
+    ds_val = ds_val.batch(batch_size).prefetch(tf.data.AUTOTUNE)
+    num_test_samples = sum(1 for _ in ds_test)                              # all test data processed in single batch
+    ds_test = ds_test.batch(num_test_samples).prefetch(tf.data.AUTOTUNE)    #
 
     logging.info('Dataset \'{}\' loaded and prepared.'.format(name))
 
@@ -130,7 +130,7 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
         return experiment_labels_list
 
 
-    def load_data_files(data_dir):
+    def load_features_filenames(data_dir):
         '''
         Retrieves accelerometer and gyroscope file names
 
@@ -138,19 +138,19 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
             data_dir (string): directory where the original data is stored
 
         Returns:
-            acc_files (list):
+            acc_filenames (list):
                 A list of 61 elements, where each element is an accelerometer file name for an experiment
-            gyro_files (list):
+            gyro_filenames (list):
                 A list of 61 element, where each element is a gyroscope file name for an experiment
         '''
 
         # Get a list of all files in the raw data directory that start with 'acc' (for accelerometer)
-        acc_files = sorted([f for f in os.listdir('{}/HAPT_dataset/RawData/'.format(data_dir)) if f.startswith('acc')])
+        acc_filenames = sorted([f for f in os.listdir('{}/HAPT_dataset/RawData/'.format(data_dir)) if f.startswith('acc')])
 
         # Get a list of all files in the raw data directory that start with 'gyro' (for gyroscope)
-        gyro_files = sorted([f for f in os.listdir('{}/HAPT_dataset/RawData/'.format(data_dir)) if f.startswith('gyro')])
+        gyro_filenames = sorted([f for f in os.listdir('{}/HAPT_dataset/RawData/'.format(data_dir)) if f.startswith('gyro')])
 
-        return acc_files, gyro_files
+        return acc_filenames, gyro_filenames
 
 
     def normalize_data(acc_data, gyro_data):
@@ -210,15 +210,15 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
         return labels_sequence
 
 
-    def split_features_and_labels(acc_files, gyro_files, experiment_labels_list, data_dir):
+    def load_split_features_and_labels_for_datasets(acc_filenames, gyro_filenames, experiment_labels_list, data_dir):
         '''
         Splits the features and labels for accelerometer and gyroscope data based on experiment IDs into
         training, validation, and test sets
 
         Args:
-            acc_files (list):
+            acc_filenames (list):
                 A list of 61 elements, where each element is an accelerometer file name for an experiment
-            gyro_files (list):
+            gyro_filenames (list):
                 A list of 61 element, where each element is a gyroscope file name for an experiment
             experiment_labels_list (list):
                 A list of 61 sublists of multiple subsublists,
@@ -235,7 +235,7 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
             test_labels (numpy.ndarray): An 1D-array of label data for testing
         '''
 
-        def load_and_process_data(experiment_id):
+        def load_features_and_labels_of_experiment(experiment_id):
             '''
             Loads accelerometer and gyroscope data for a specific experiment
 
@@ -252,8 +252,8 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
             '''
 
             # Load file names for specific experiment
-            acc_file = acc_files[experiment_id - 1]
-            gyro_file = gyro_files[experiment_id - 1]
+            acc_file = acc_filenames[experiment_id - 1]
+            gyro_file = gyro_filenames[experiment_id - 1]
 
             # Load data for a specific experiment
             acc_data = pd.read_csv(
@@ -269,7 +269,7 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
             return data, labels_sequence
 
-        def split_data(experiment_ids):
+        def load_features_and_labels_for_dataset(experiment_ids):
             '''
             Splits data and labels according to experiment ranges for predefined split of the dataset
 
@@ -287,10 +287,35 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
                     where each element represents the current activity for this datapoint with its activity number id
             '''
 
-            data_part, labels_sequence_part = zip(*[load_and_process_data(experiment_id) for experiment_id in experiment_ids])
+            data_part, labels_sequence_part = zip(*[load_features_and_labels_of_experiment(experiment_id) for experiment_id in experiment_ids])
             return np.concatenate(data_part), np.concatenate(labels_sequence_part)
 
-        return split_data(train_experiment_ids), split_data(val_experiment_ids), split_data(test_experiment_ids)
+        return load_features_and_labels_for_dataset(train_experiment_ids), load_features_and_labels_for_dataset(val_experiment_ids), load_features_and_labels_for_dataset(test_experiment_ids)
+
+    def remove_zero_label_datapoints(features, labels):
+        '''
+        Deletes data not assigned to an activity
+
+        Args:
+            features (numpy.ndarray): An array of feature data
+            labels (numpy.ndarray): An array of label data
+
+        Returns:
+            features (numpy.ndarray): An array of feature data with removed data not assigned to an activity
+            labels (numpy.ndarray): An array of label data with removed zero-elements
+        '''
+
+        # Find indices where label is 0
+        ids = np.where(labels == 0)[0]
+
+        # Remove rows in features and labels where label is 0
+        updated_features = np.delete(features, ids, axis=0)
+        updated_labels = np.delete(labels, ids, axis=0)
+
+        # Adjust for the removed label
+        updated_labels -= 1
+
+        return updated_features, updated_labels
 
 
     def create_tfrecord_dataset(features, labels, window_size, window_shift):
@@ -370,12 +395,17 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
     experiment_labels_list = load_labels(data_dir)
 
     # Retrieve accelerometer and gyroscope file names
-    acc_files, gyro_files = load_data_files(data_dir)
+    acc_filenames, gyro_filenames = load_features_filenames(data_dir)
 
     # Split the features and labels for accelerometer and gyroscope data based on experiment IDs into
     # training, validation, and test sets
     (train_features, train_labels), (val_features, val_labels), (test_features, test_labels)\
-        = split_features_and_labels(acc_files, gyro_files, experiment_labels_list, data_dir)
+        = load_split_features_and_labels_for_datasets(acc_filenames, gyro_filenames, experiment_labels_list, data_dir)
+
+    # Delete data not assigned to an activity
+    train_features, train_labels = remove_zero_label_datapoints(train_features, train_labels)
+    val_features, val_labels = remove_zero_label_datapoints(val_features, val_labels)
+    test_features, test_labels = remove_zero_label_datapoints(test_features, test_labels)
 
     # Define directory of TFRecord files
     data_dir_tfrecords = './input_pipeline/tfrecord_files/window_size_{}_shift_{}'.format(window_size, window_shift)
