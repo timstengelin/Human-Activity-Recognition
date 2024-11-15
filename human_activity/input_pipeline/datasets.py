@@ -78,11 +78,11 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
     ds_test = tf.data.TFRecordDataset(ds_test_path).map(parse_example)
 
     # Shuffle, batch, repeat training dataset
-    ds_train = ds_train.shuffle(buffer_size).batch(batch_size).repeat()
+    ds_train = ds_train.shuffle(buffer_size).batch(batch_size).repeat().prefetch(tf.data.AUTOTUNE)
     # Batch the validation and test datasets
-    ds_val = ds_val.batch(batch_size)
-    num_test_samples = sum(1 for _ in ds_test)
-    ds_test = ds_test.batch(num_test_samples)
+    ds_val = ds_val.batch(batch_size).prefetch(tf.data.AUTOTUNE)
+    num_test_samples = sum(1 for _ in ds_test)                              # all test data processed in single batch
+    ds_test = ds_test.batch(num_test_samples).prefetch(tf.data.AUTOTUNE)    #
 
     logging.info('Dataset \'{}\' loaded and prepared.'.format(name))
 
