@@ -69,7 +69,10 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
         window_feature = tf.io.parse_tensor(parsed_features['window_features'], out_type=tf.float64)
         window_label = tf.io.parse_tensor(parsed_features['window_label'], out_type=tf.int32)
 
-        return window_feature, window_label
+        # Convert labels to one-hot encoding
+        window_label_one_hot = tf.one_hot(window_label - 1, depth=12)
+
+        return window_feature, window_label_one_hot
 
     # Load datasets
     ds_train = tf.data.TFRecordDataset(ds_train_path).map(parse_example)
@@ -206,7 +209,6 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
             # Assign the activity number id to the positions in 'labels' from label start point to label end point
             labels_sequence[label_start_point:label_end_point + 1] = activity_number_id
-
         return labels_sequence
 
 
