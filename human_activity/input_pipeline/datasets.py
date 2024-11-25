@@ -292,31 +292,6 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
         return load_features_and_labels_for_dataset(train_experiment_ids), load_features_and_labels_for_dataset(val_experiment_ids), load_features_and_labels_for_dataset(test_experiment_ids)
 
-    def remove_zero_label_datapoints(features, labels):
-        '''
-        Deletes data not assigned to an activity
-
-        Args:
-            features (numpy.ndarray): An array of feature data
-            labels (numpy.ndarray): An array of label data
-
-        Returns:
-            features (numpy.ndarray): An array of feature data with removed data not assigned to an activity
-            labels (numpy.ndarray): An array of label data with removed zero-elements
-        '''
-
-        # Find indices where label is 0
-        ids = np.where(labels == 0)[0]
-
-        # Remove rows in features and labels where label is 0
-        updated_features = np.delete(features, ids, axis=0)
-        updated_labels = np.delete(labels, ids, axis=0)
-
-        # Adjust for the removed label
-        updated_labels -= 1
-
-        return updated_features, updated_labels
-
 
     def create_tfrecord_dataset(features, labels, window_size, window_shift):
         '''
@@ -401,11 +376,6 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
     # training, validation, and test sets
     (train_features, train_labels), (val_features, val_labels), (test_features, test_labels)\
         = load_split_features_and_labels_for_datasets(acc_filenames, gyro_filenames, experiment_labels_list, data_dir)
-
-    # Delete data not assigned to an activity
-    train_features, train_labels = remove_zero_label_datapoints(train_features, train_labels)
-    val_features, val_labels = remove_zero_label_datapoints(val_features, val_labels)
-    test_features, test_labels = remove_zero_label_datapoints(test_features, test_labels)
 
     # Define directory of TFRecord files
     data_dir_tfrecords = './input_pipeline/tfrecord_files/window_size_{}_shift_{}'.format(window_size, window_shift)
