@@ -69,7 +69,10 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
         window_feature = tf.io.parse_tensor(parsed_features['window_features'], out_type=tf.float64)
         window_label = tf.io.parse_tensor(parsed_features['window_label'], out_type=tf.int32)
 
-        return window_feature, window_label
+        # Convert labels to one-hot encoding
+        window_label_one_hot = tf.one_hot(window_label - 1, depth=12)
+
+        return window_feature, window_label_one_hot
 
     # Load datasets
     ds_train = tf.data.TFRecordDataset(ds_train_path).map(parse_example)
@@ -77,8 +80,8 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
     ds_test = tf.data.TFRecordDataset(ds_test_path).map(parse_example)
 
     # Shuffle, batch, repeat training dataset
-    num_train_samples = sum(1 for _ in ds_train)                                                            # complete shuffle
-    ds_train = ds_train.shuffle(num_train_samples).batch(batch_size).repeat().prefetch(tf.data.AUTOTUNE)    #
+    num_train_samples = sum(1 for _ in ds_train)                                                                                # complete shuffle
+    ds_train = ds_train.shuffle(num_train_samples).batch(batch_size, drop_remainder=True).repeat().prefetch(tf.data.AUTOTUNE)   #
     # Batch the validation and test datasets
     ds_val = ds_val.batch(batch_size).prefetch(tf.data.AUTOTUNE)
     num_test_samples = sum(1 for _ in ds_test)                              # all test data processed in single batch
@@ -206,7 +209,6 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
             # Assign the activity number id to the positions in 'labels' from label start point to label end point
             labels_sequence[label_start_point:label_end_point + 1] = activity_number_id
-
         return labels_sequence
 
 
@@ -292,31 +294,6 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
         return load_features_and_labels_for_dataset(train_experiment_ids), load_features_and_labels_for_dataset(val_experiment_ids), load_features_and_labels_for_dataset(test_experiment_ids)
 
-    def remove_zero_label_datapoints(features, labels):
-        '''
-        Deletes data not assigned to an activity
-
-        Args:
-            features (numpy.ndarray): An array of feature data
-            labels (numpy.ndarray): An array of label data
-
-        Returns:
-            features (numpy.ndarray): An array of feature data with removed data not assigned to an activity
-            labels (numpy.ndarray): An array of label data with removed zero-elements
-        '''
-
-        # Find indices where label is 0
-        ids = np.where(labels == 0)[0]
-
-        # Remove rows in features and labels where label is 0
-        updated_features = np.delete(features, ids, axis=0)
-        updated_labels = np.delete(labels, ids, axis=0)
-
-        # Adjust for the removed label
-        updated_labels -= 1
-
-        return updated_features, updated_labels
-
 
     def create_tfrecord_dataset(features, labels, window_size, window_shift):
         '''
@@ -381,8 +358,8 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
                     )
                 )
 
-            # Write serialized Example to the TFRecord file
-            writer.write(example.SerializeToString())
+                # Write serialized Example to the TFRecord file
+                writer.write(example.SerializeToString())
 
 
     # Set experiment ranges for predefined split of dataset
@@ -401,11 +378,6 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
     # training, validation, and test sets
     (train_features, train_labels), (val_features, val_labels), (test_features, test_labels)\
         = load_split_features_and_labels_for_datasets(acc_filenames, gyro_filenames, experiment_labels_list, data_dir)
-
-    # Delete data not assigned to an activity
-    train_features, train_labels = remove_zero_label_datapoints(train_features, train_labels)
-    val_features, val_labels = remove_zero_label_datapoints(val_features, val_labels)
-    test_features, test_labels = remove_zero_label_datapoints(test_features, test_labels)
 
     # Define directory of TFRecord files
     data_dir_tfrecords = './input_pipeline/tfrecord_files/window_size_{}_shift_{}'.format(window_size, window_shift)
