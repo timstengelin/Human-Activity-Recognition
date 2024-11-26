@@ -1,7 +1,7 @@
 import gin
 import tensorflow as tf
 
-from models.layers import vgg_block
+import models.layers as custom_layers
 
 @gin.configurable
 def vgg_like(input_shape, n_classes, base_filters, n_blocks, dense_units, dropout_rate):
@@ -31,3 +31,12 @@ def vgg_like(input_shape, n_classes, base_filters, n_blocks, dense_units, dropou
     outputs = tf.keras.layers.Dense(n_classes)(out)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='vgg_like')
+
+@gin.configurable
+def lstm_architecture(input_shape, n_classes):
+    inputs = tf.keras.Input(input_shape)
+    out = custom_layers.lstm_layer(inputs=inputs)
+    # print(out.shape)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(out)
+    # print(outputs.shape)
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='lstm_base')
