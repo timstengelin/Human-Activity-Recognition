@@ -80,8 +80,8 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
     ds_test = tf.data.TFRecordDataset(ds_test_path).map(parse_example)
 
     # Shuffle, batch, repeat training dataset
-    num_train_samples = sum(1 for _ in ds_train)                                                            # complete shuffle
-    ds_train = ds_train.shuffle(num_train_samples).batch(batch_size).repeat().prefetch(tf.data.AUTOTUNE)    #
+    num_train_samples = sum(1 for _ in ds_train)                                                                                # complete shuffle
+    ds_train = ds_train.shuffle(num_train_samples).batch(batch_size, drop_remainder=True).repeat().prefetch(tf.data.AUTOTUNE)   #
     # Batch the validation and test datasets
     ds_val = ds_val.batch(batch_size).prefetch(tf.data.AUTOTUNE)
     num_test_samples = sum(1 for _ in ds_test)                              # all test data processed in single batch
@@ -358,8 +358,8 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
                     )
                 )
 
-            # Write serialized Example to the TFRecord file
-            writer.write(example.SerializeToString())
+                # Write serialized Example to the TFRecord file
+                writer.write(example.SerializeToString())
 
 
     # Set experiment ranges for predefined split of dataset
