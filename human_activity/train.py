@@ -31,11 +31,11 @@ class Trainer(object):
         self.ckpt_interval = ckpt_interval
 
     @tf.function
-    def train_step(self, images, labels):
+    def train_step(self, data, labels):
         with tf.GradientTape() as tape:
             # training=True is only needed if there are layers with different
             # behavior during training versus inference (e.g. Dropout).
-            predictions = self.model(images, training=True)
+            predictions = self.model(data, training=True)
             loss = self.loss_object(labels, predictions)
         gradients = tape.gradient(loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
@@ -44,20 +44,20 @@ class Trainer(object):
         self.train_accuracy(labels, predictions)
 
     @tf.function
-    def val_step(self, images, labels):
+    def val_step(self, data, labels):
         # training=False is only needed if there are layers with different
         # behavior during training versus inference (e.g. Dropout).
-        predictions = self.model(images, training=False)
+        predictions = self.model(data, training=False)
         t_loss = self.loss_object(labels, predictions)
 
         self.val_loss(t_loss)
         self.val_accuracy(labels, predictions)
 
     def train(self):
-        for idx, (images, labels) in enumerate(self.ds_train):
+        for idx, (data, labels) in enumerate(self.ds_train):
 
             step = idx + 1
-            self.train_step(images, labels)
+            self.train_step(data, labels)
 
             if step % self.log_interval == 0:
 
@@ -65,8 +65,8 @@ class Trainer(object):
                 self.val_loss.reset_states()
                 self.val_accuracy.reset_states()
 
-                for val_images, val_labels in self.ds_val:
-                    self.val_step(val_images, val_labels)
+                for val_data, val_labels in self.ds_val:
+                    self.val_step(val_data, val_labels)
 
                 template = 'Step {}, Loss: {}, Accuracy: {}, Validation Loss: {}, Validation Accuracy: {}'
                 logging.info(template.format(step,
