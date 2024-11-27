@@ -36,7 +36,7 @@ def main(argv):
     model = architectures.lstm_architecture(input_shape=(250,6), n_classes=12)
 
     if FLAGS.train:
-        trainer = Trainer(model, ds_train, ds_val, run_paths)
+        trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, learning_rate=0.00001, run_paths=run_paths)
         for _ in trainer.train():
             continue
     # else:

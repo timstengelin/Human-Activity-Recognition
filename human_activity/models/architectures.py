@@ -37,6 +37,6 @@ def lstm_architecture(input_shape, n_classes):
     inputs = tf.keras.Input(input_shape)
     out = custom_layers.lstm_layer(inputs=inputs)
     # print(out.shape)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(out)
+    outputs = tf.keras.layers.Dense(n_classes, activation='sigmoid')(out)
     # print(outputs.shape)
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='lstm_base')
