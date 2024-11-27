@@ -35,8 +35,8 @@ def vgg_like(input_shape, n_classes, base_filters, n_blocks, dense_units, dropou
 @gin.configurable
 def lstm_architecture(input_shape, n_classes):
     inputs = tf.keras.Input(input_shape)
-    out = custom_layers.lstm_layer(inputs=inputs)
-    # print(out.shape)
-    outputs = tf.keras.layers.Dense(n_classes, activation='sigmoid')(out)
-    # print(outputs.shape)
-    return tf.keras.Model(inputs=inputs, outputs=outputs, name='lstm_base')
+    out = custom_layers.basic_lstm_layer(inputs=inputs, units=250, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=125)
+    out = custom_layers.basic_lstm_layer(inputs=out, units=64, return_sequences=False)
+    out = custom_layers.basic_dense_layer(inputs=out, units=n_classes, activation="sigmoid")
+    return tf.keras.Model(inputs=inputs, outputs=out, name='lstm_base')
