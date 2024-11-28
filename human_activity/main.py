@@ -13,6 +13,9 @@ FLAGS = flags.FLAGS
 flags.DEFINE_boolean('train', True, 'Specify whether to train or evaluate a model.')
 
 def main(argv):
+    # gin-config
+    gin.parse_config_files_and_bindings(['configs/config.gin'], [])
+
 
     # generate folder structures
     run_paths = utils_params.gen_run_folder()
@@ -20,9 +23,10 @@ def main(argv):
     # set loggers
     utils_misc.set_loggers(run_paths['path_logs_train'], logging.INFO)
 
-    # gin-config
-    gin.parse_config_files_and_bindings(['configs/config.gin'], [])
+    # set config path
     utils_params.save_config(run_paths['path_gin'], gin.config_str())
+
+
 
     # setup pipeline
     ds_train, ds_val, ds_test, ds_info = datasets.load()
@@ -39,12 +43,13 @@ def main(argv):
         trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, learning_rate=0.00001, run_paths=run_paths)
         for _ in trainer.train():
             continue
-    # else:
-    #     evaluate(model,
-    #              checkpoint,
-    #              ds_test,
-    #              ds_info,
-    #              run_paths)
+    else:
+        utils_misc.set_loggers(run_paths['path_logs_eval'], logging.INFO)
+        evaluate(model,
+                 checkpoint,
+                 ds_test,
+                 ds_info,
+                 run_paths)
 
 if __name__ == "__main__":
     app.run(main)

@@ -4,8 +4,7 @@ import logging
 
 @gin.configurable
 class Trainer(object):
-    def __init__(self, model, ds_train, ds_val, learning_rate, run_paths, total_steps, log_interval, ckpt_interval,
-                 try_restoring=True):
+    def __init__(self, model, ds_train, ds_val, learning_rate, run_paths, total_steps, log_interval, ckpt_interval):
         # Summary Writer
         # ....
 
@@ -27,7 +26,6 @@ class Trainer(object):
         self.total_steps = total_steps
         self.log_interval = log_interval
         self.ckpt_interval = ckpt_interval
-        self.try_restoring = try_restoring
 
         # Checkpoint Manager
         self.ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=self.optimizer, net=self.model)
@@ -60,13 +58,10 @@ class Trainer(object):
     def train(self):
 
         # resume the model by continuing training if model is available
-        if self.try_restoring:
-            self.ckpt.restore(self.ckpt_manager.latest_checkpoint)
-            if self.ckpt_manager.latest_checkpoint:
-                logging.info("Restored training data from {}".format(self.ckpt_manager.latest_checkpoint))
-                self.ckpt.step.assign_add(1)
-            else:
-                logging.info("Starting training for a new model...")
+        self.ckpt.restore(self.ckpt_manager.latest_checkpoint)
+        if self.ckpt_manager.latest_checkpoint:
+            logging.info("Restored training data from {}".format(self.ckpt_manager.latest_checkpoint))
+            self.ckpt.step.assign_add(1)
         else:
             logging.info("Starting training for a new model...")
 
