@@ -8,9 +8,6 @@ class Trainer(object):
         # Summary Writer
         # ....
 
-        # Checkpoint Manager
-        # ...
-
         # Loss objective
         self.loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -29,6 +26,10 @@ class Trainer(object):
         self.total_steps = total_steps
         self.log_interval = log_interval
         self.ckpt_interval = ckpt_interval
+
+        # Checkpoint Manager
+        self.ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=self.optimizer, net=self.model)
+        self.ckpt_manager = tf.train.CheckpointManager(self.ckpt, self.run_paths["path_ckpts_train"], max_to_keep=100)
 
     @tf.function
     def train_step(self, data, labels):
@@ -54,6 +55,16 @@ class Trainer(object):
         self.val_accuracy(labels, predictions)
 
     def train(self):
+
+        # if training is interrupted unexpectedly, resume the model from here and continue training
+        # or if it is the first step of training, start training from the beginning
+        self.ckpt.restore(self.ckpt_manager.latest_checkpoint)
+        if self.ckpt_manager.latest_checkpoint:
+            logging.info("Restored training data from {}".format(self.ckpt_manager.latest_checkpoint))
+            self.ckpt.step.assign_add(1)
+        else:
+            logging.info("Starting training for a new model...")
+
         for idx, (data, labels) in enumerate(self.ds_train):
 
             step = idx + 1
@@ -85,12 +96,12 @@ class Trainer(object):
                 yield self.val_accuracy.result().numpy()
 
             if step % self.ckpt_interval == 0:
-                logging.info(f'Saving checkpoint to {self.run_paths["path_ckpts_train"]}.')
                 # Save checkpoint
-                # ...
+                self.ckpt_manager.save()
+                logging.info(f'Saving checkpoint to {self.run_paths["path_ckpts_train"]}.')
 
             if step % self.total_steps == 0:
-                logging.info(f'Finished training after {step} steps.')
                 # Save final checkpoint
-                # ...
+                self.ckpt_manager.save()
+                logging.info(f'Finished training after {step} steps.')
                 return self.val_accuracy.result().numpy()
