@@ -79,7 +79,7 @@ class Trainer(object):
                 for val_data, val_labels in self.ds_val:
                     self.val_step(val_data, val_labels)
 
-                template = 'Step {}, Loss: {}, Accuracy: {}, Validation Loss: {}, Validation Accuracy: {}'
+                template = 'Step {}, Loss: {:.6f}, Accuracy: {:.6f}, Validation Loss: {:.6f}, Validation Accuracy: {:.6f}'
                 logging.info(template.format(step,
                                              self.train_loss.result(),
                                              self.train_accuracy.result() * 100,
