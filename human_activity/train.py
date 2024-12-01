@@ -5,9 +5,6 @@ import logging
 @gin.configurable
 class Trainer(object):
     def __init__(self, model, ds_train, ds_val, learning_rate, run_paths, total_steps, log_interval, ckpt_interval):
-        # Summary Writer
-        # ....
-
         # Loss objective
         self.loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -31,6 +28,10 @@ class Trainer(object):
         self.ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=self.optimizer, net=self.model)
         self.ckpt_manager = tf.train.CheckpointManager(checkpoint=self.ckpt, directory=self.run_paths["path_ckpts_train"],
                                                        max_to_keep=10)
+
+        # Summary Writer
+        self.train_summary_writer = tf.summary.create_file_writer(self.run_paths['path_board_train'])
+        self.val_summary_writer = tf.summary.create_file_writer(self.run_paths['path_board_val'])
 
     @tf.function
     def train_step(self, data, labels):
@@ -70,6 +71,11 @@ class Trainer(object):
             step = idx + 1
             self.train_step(data, labels)
 
+            # Write summary to tensorboard
+            with self.train_summary_writer.as_default():
+                tf.summary.scalar('loss', self.train_loss.result(), step=step)
+                tf.summary.scalar('accuracy', self.train_accuracy.result() * 100, step=step)
+
             if step % self.log_interval == 0:
 
                 # Reset test metrics
@@ -87,7 +93,9 @@ class Trainer(object):
                                              self.val_accuracy.result() * 100))
                 
                 # Write summary to tensorboard
-                # ...
+                with self.val_summary_writer.as_default():
+                    tf.summary.scalar('loss', self.val_loss.result(), step=step)
+                    tf.summary.scalar('accuracy', self.val_accuracy.result() * 100, step=step)
 
                 # Reset train metrics
                 self.train_loss.reset_states()

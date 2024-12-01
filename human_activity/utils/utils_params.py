@@ -24,6 +24,8 @@ def gen_run_folder(path_model_id, new_model):
 
     run_paths['path_logs_train'] = os.path.join(run_paths['path_model_id'], 'logs', 'run.log')
     run_paths['path_logs_eval'] = os.path.join(run_paths['path_model_id'], 'logs', 'eval', 'run.log')
+    run_paths['path_board_train'] = os.path.join(run_paths['path_model_id'], 'summary', 'train')
+    run_paths['path_board_val'] = os.path.join(run_paths['path_model_id'], 'summary', 'val')
     run_paths['path_ckpts_train'] = os.path.join(run_paths['path_model_id'], 'ckpts')
     run_paths['path_ckpts_eval'] = os.path.join(run_paths['path_model_id'], 'ckpts', 'eval')
     run_paths['path_gin'] = os.path.join(run_paths['path_model_id'], 'config_operative.gin')
