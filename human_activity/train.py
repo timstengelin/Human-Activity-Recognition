@@ -5,12 +5,6 @@ import logging
 @gin.configurable
 class Trainer(object):
     def __init__(self, model, ds_train, ds_val, learning_rate, run_paths, total_steps, log_interval, ckpt_interval):
-        # Summary Writer
-        # ....
-
-        # Checkpoint Manager
-        # ...
-
         # Loss objective
         self.loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -29,6 +23,15 @@ class Trainer(object):
         self.total_steps = total_steps
         self.log_interval = log_interval
         self.ckpt_interval = ckpt_interval
+
+        # Checkpoint Manager
+        self.ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=self.optimizer, net=self.model)
+        self.ckpt_manager = tf.train.CheckpointManager(checkpoint=self.ckpt, directory=self.run_paths["path_ckpts_train"],
+                                                       max_to_keep=10)
+
+        # Summary Writer
+        self.train_summary_writer = tf.summary.create_file_writer(self.run_paths['path_board_train'])
+        self.val_summary_writer = tf.summary.create_file_writer(self.run_paths['path_board_val'])
 
     @tf.function
     def train_step(self, data, labels):
@@ -54,10 +57,24 @@ class Trainer(object):
         self.val_accuracy(labels, predictions)
 
     def train(self):
+
+        # resume the model by continuing training if model is available
+        self.ckpt.restore(self.ckpt_manager.latest_checkpoint)
+        if self.ckpt_manager.latest_checkpoint:
+            logging.info("Restored training data from {}".format(self.ckpt_manager.latest_checkpoint))
+            self.ckpt.step.assign_add(1)
+        else:
+            logging.info("Starting training for a new model...")
+
         for idx, (data, labels) in enumerate(self.ds_train):
 
             step = idx + 1
             self.train_step(data, labels)
+
+            # Write summary to tensorboard
+            with self.train_summary_writer.as_default():
+                tf.summary.scalar('loss', self.train_loss.result(), step=step)
+                tf.summary.scalar('accuracy', self.train_accuracy.result() * 100, step=step)
 
             if step % self.log_interval == 0:
 
@@ -68,7 +85,7 @@ class Trainer(object):
                 for val_data, val_labels in self.ds_val:
                     self.val_step(val_data, val_labels)
 
-                template = 'Step {}, Loss: {}, Accuracy: {}, Validation Loss: {}, Validation Accuracy: {}'
+                template = 'Step {}, Loss: {:.6f}, Accuracy: {:.6f}, Validation Loss: {:.6f}, Validation Accuracy: {:.6f}'
                 logging.info(template.format(step,
                                              self.train_loss.result(),
                                              self.train_accuracy.result() * 100,
@@ -76,7 +93,9 @@ class Trainer(object):
                                              self.val_accuracy.result() * 100))
                 
                 # Write summary to tensorboard
-                # ...
+                with self.val_summary_writer.as_default():
+                    tf.summary.scalar('loss', self.val_loss.result(), step=step)
+                    tf.summary.scalar('accuracy', self.val_accuracy.result() * 100, step=step)
 
                 # Reset train metrics
                 self.train_loss.reset_states()
@@ -85,12 +104,12 @@ class Trainer(object):
                 yield self.val_accuracy.result().numpy()
 
             if step % self.ckpt_interval == 0:
-                logging.info(f'Saving checkpoint to {self.run_paths["path_ckpts_train"]}.')
                 # Save checkpoint
-                # ...
+                self.ckpt_manager.save()
+                logging.info(f'Saving checkpoint to {self.run_paths["path_ckpts_train"]}.')
 
             if step % self.total_steps == 0:
-                logging.info(f'Finished training after {step} steps.')
                 # Save final checkpoint
-                # ...
+                self.ckpt_manager.save()
+                logging.info(f'Finished training after {step} steps.')
                 return self.val_accuracy.result().numpy()
