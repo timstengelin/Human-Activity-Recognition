@@ -38,7 +38,7 @@ def main(argv):
 
     if FLAGS.train:
         # initialize Trainer class based on given model and datasets
-        trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, learning_rate=0.00001, run_paths=run_paths)
+        trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, run_paths=run_paths)
         for _ in trainer.train():
             continue
     else:
