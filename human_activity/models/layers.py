@@ -13,7 +13,7 @@ def basic_lstm_layer(inputs, units, return_sequences=True, batch_norm=True, acti
 
         Returns:
             (Tensor): output of the single LSTM layer
-        """
+    """
     out = tf.keras.layers.LSTM(units=units, return_sequences=return_sequences)(inputs)
     if batch_norm:
         out = tf.keras.layers.BatchNormalization()(out)

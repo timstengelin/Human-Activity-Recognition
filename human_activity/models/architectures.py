@@ -5,6 +5,15 @@ import models.layers as custom_layers
 
 @gin.configurable
 def lstm_architecture(input_shape, n_classes):
+    """A basic LSTM architecture
+
+        Parameters:
+            inputs (list): input dimensions of the model
+            n_classes (int): number of one-hot encoded classes
+
+        Returns:
+            (model): tensorflow keras model with given dimensions
+    """
     inputs = tf.keras.Input(input_shape)
     out = custom_layers.basic_lstm_layer(inputs=inputs, units=250, return_sequences=True)
     out = custom_layers.basic_dense_layer(inputs=out, units=125)

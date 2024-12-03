@@ -16,6 +16,7 @@ class Trainer(object):
         self.val_loss = tf.keras.metrics.Mean(name='val_loss')
         self.val_accuracy = tf.keras.metrics.CategoricalAccuracy(name='val_accuracy')
 
+        # attributes
         self.model = model
         self.ds_train = ds_train
         self.ds_val = ds_val
@@ -35,6 +36,15 @@ class Trainer(object):
 
     @tf.function
     def train_step(self, data, labels):
+        """A basic single LSTM layer
+
+            Parameters:
+                data (Tensor): input data for train step
+                labels (int): true labels for train step
+
+            Returns:
+                none
+        """
         with tf.GradientTape() as tape:
             # training=True is only needed if there are layers with different
             # behavior during training versus inference (e.g. Dropout).
@@ -48,6 +58,15 @@ class Trainer(object):
 
     @tf.function
     def val_step(self, data, labels):
+        """A basic single LSTM layer
+
+            Parameters:
+                data (Tensor): input data for validation step
+                labels (int): true labels for validation step
+
+            Returns:
+                none
+        """
         # training=False is only needed if there are layers with different
         # behavior during training versus inference (e.g. Dropout).
         predictions = self.model(data, training=False)
@@ -57,7 +76,13 @@ class Trainer(object):
         self.val_accuracy(labels, predictions)
 
     def train(self):
+        """train function
 
+            Parameters:
+                none
+            Returns:
+                none
+        """
         # resume the model by continuing training if model is available
         self.ckpt.restore(self.ckpt_manager.latest_checkpoint)
         if self.ckpt_manager.latest_checkpoint:
