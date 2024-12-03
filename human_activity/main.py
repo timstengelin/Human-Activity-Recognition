@@ -33,8 +33,15 @@ def main(argv):
     ds_val = ds_val.map(lambda x, y: (x, tf.reduce_mean(y, axis=1)))
     ds_test = ds_test.map(lambda x, y: (x, tf.reduce_mean(y, axis=1)))
 
-    # create model
-    model = architectures.lstm_architecture(input_shape=(250,6), n_classes=12)
+    # get shape from actual dataset
+    feature_shape = None
+    label_shape = None
+    for data, label in ds_train:
+        feature_shape = data.shape[1:]
+        label_shape = label.shape[1:]
+        break
+
+    model = architectures.lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
 
     if FLAGS.train:
         # initialize Trainer class based on given model and datasets
