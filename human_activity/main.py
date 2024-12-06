@@ -41,11 +41,13 @@ def main(argv):
         label_shape = label.shape[1:]
         break
 
-    model_name = "LSTM_model"
+    model_name = "RNN_model"
     if model_name == "LSTM_model":
         model = architectures.lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
     elif model_name == "GRU_model":
         model = architectures.gru_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "RNN_model":
+        model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
 
     if FLAGS.train:
         # initialize Trainer class based on given model and datasets

@@ -60,3 +60,23 @@ def basic_GRU_layer(inputs, units, return_sequences=True, batch_norm=True, activ
         out = tf.keras.layers.BatchNormalization()(out)
     out = tf.keras.layers.Activation(activation)(out)
     return out
+
+@gin.configurable
+def basic_RNN_layer(inputs, units, return_sequences=True, batch_norm=True, activation="tanh"):
+    """A basic RNN layer
+
+    Parameters:
+        inputs (Tensor): input of the RNN layer
+        units (int): number of filters used for the RNN layer
+        return_sequences (bool): whether output is sequence or not (Default is True)
+        batch_norm (bool): whether the batch normalization is used or not (Default is True)
+        activation (string): which activation function to use (Default is "tanh")
+
+    Returns:
+        (Tensor): output of the single RNN layer
+    """
+    out = tf.keras.layers.SimpleRNN(units, return_sequences=return_sequences)(inputs)
+    if batch_norm:
+        out = tf.keras.layers.BatchNormalization()(out)
+    out = tf.keras.layers.Activation(activation)(out)
+    return out
