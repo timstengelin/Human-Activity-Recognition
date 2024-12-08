@@ -10,7 +10,7 @@ import models.architectures as architectures
 import tensorflow as tf
 
 FLAGS = flags.FLAGS
-flags.DEFINE_boolean('train', True, 'Specify whether to train or evaluate a model.')
+flags.DEFINE_boolean('train', False, 'Specify whether to train or evaluate a model.')
 
 def main(argv):
     # collect data from gin config file
@@ -41,7 +41,7 @@ def main(argv):
         label_shape = label.shape[1:]
         break
 
-    model_name = "RNN_model"
+    model_name = "LSTM_model"
     if model_name == "LSTM_model":
         model = architectures.lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
     elif model_name == "GRU_model":
@@ -56,11 +56,12 @@ def main(argv):
             continue
     else:
         utils_misc.set_loggers(run_paths['path_logs_eval'], logging.INFO)
-        evaluate(model,
-                 checkpoint,
-                 ds_test,
-                 ds_info,
-                 run_paths)
+        print(feature_shape, label_shape)
+
+        evaluate(model=model,
+                 ds_test=ds_val,
+                 run_paths=run_paths,
+                 n_classes=label_shape[-1])
 
 if __name__ == "__main__":
     app.run(main)
