@@ -46,6 +46,7 @@ def main(argv):
         model = vgg16(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'MobileNetV2':
         model = mobilenet_v2(input_shape=(256, 256, 3), n_classes=2)
+    model.summary()
 
     if FLAGS.train:
         trainer = Trainer(model, ds_train, ds_val, ds_info, run_paths)
