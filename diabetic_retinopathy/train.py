@@ -4,7 +4,7 @@ import logging
 
 @gin.configurable
 class Trainer(object):
-    def __init__(self, model, ds_train, ds_val, ds_info, run_paths, total_steps, log_interval, ckpt_interval):
+    def __init__(self, model, ds_train, ds_val, ds_info, run_paths, total_steps, log_interval, ckpt_interval, learning_rate):
         # Summary Writer
         # ....
 
@@ -12,8 +12,8 @@ class Trainer(object):
         # ...
 
         # Loss objective
-        self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        self.optimizer = tf.keras.optimizers.Adam()
+        self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
         # Metrics
         self.train_loss = tf.keras.metrics.Mean(name='train_loss')

@@ -128,7 +128,7 @@ def read_record(record_filename, train_val_split=1.0):
         # decode jpeg again
         dataset = parsed_dataset.map(lambda x: (tf.io.decode_jpeg(x['image']), x['label']))
         return dataset
-def prepare_dataset(dataset, augmentation, batch_size, caching):
+def prepare_dataset(dataset, augmentation, batch_size, caching, repeat):
     def _normalize(image):
         return tf.cast(image, tf.float32) / 255.
 
@@ -157,7 +157,8 @@ def prepare_dataset(dataset, augmentation, batch_size, caching):
     dataset = dataset.shuffle(buffer_size=count,reshuffle_each_iteration=True)
     dataset = dataset.batch(batch_size, drop_remainder=True,
                             num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    dataset = dataset.repeat(-1)
+    if repeat:
+        dataset = dataset.repeat(-1)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return dataset
@@ -187,9 +188,9 @@ def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, ba
 
     # Preparation and augmentation (only for training data)
     logging.info('Starting preparation (and augmentation) of datasets...')
-    train_set = prepare_dataset(train_set, augmentation=augmentation, batch_size=batch_size, caching=caching)
-    val_set = prepare_dataset(val_set, augmentation=False, batch_size=batch_size, caching=caching)
-    test_set = prepare_dataset(test_set, augmentation=False, batch_size=batch_size, caching=caching)
+    train_set = prepare_dataset(train_set, augmentation=augmentation, batch_size=batch_size, caching=caching, repeat=True)
+    val_set = prepare_dataset(val_set, augmentation=False, batch_size=batch_size, caching=caching, repeat=False)
+    test_set = prepare_dataset(test_set, augmentation=False, batch_size=batch_size, caching=caching,repeat=False)
     logging.info('Finished preparation (and augmentation) of datasets...')
 
     return train_set, val_set, test_set
