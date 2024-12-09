@@ -1,33 +1,37 @@
 import gin
 import tensorflow as tf
 
-from models.layers import vgg_block
-
 @gin.configurable
-def vgg_like(input_shape, n_classes, base_filters, n_blocks, dense_units, dropout_rate):
-    """Defines a VGG-like architecture.
+def le_net(input_shape, n_classes):
+    '''
+    Defines a LeNet architecture.
 
-    Parameters:
-        input_shape (tuple: 3): input shape of the neural network
-        n_classes (int): number of classes, corresponding to the number of output neurons
-        base_filters (int): number of base filters, which are doubled for every VGG block
-        n_blocks (int): number of VGG blocks
-        dense_units (int): number of dense units
-        dropout_rate (float): dropout rate
+    Args:
+        input_shape (tuple): Shape of the input tensor.
+        n_classes (int): Number of output classes.
 
     Returns:
-        (keras.Model): keras model object
-    """
+        (tf.keras.Model): LeNet model.
 
-    assert n_blocks > 0, 'Number of blocks has to be at least 1.'
+    '''
 
-    inputs = tf.keras.Input(input_shape)
-    out = vgg_block(inputs, base_filters)
-    for i in range(2, n_blocks):
-        out = vgg_block(out, base_filters * 2 ** (i))
-    out = tf.keras.layers.GlobalAveragePooling2D()(out)
-    out = tf.keras.layers.Dense(dense_units, activation=tf.nn.relu)(out)
-    out = tf.keras.layers.Dropout(dropout_rate)(out)
-    outputs = tf.keras.layers.Dense(n_classes)(out)
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
 
-    return tf.keras.Model(inputs=inputs, outputs=outputs, name='vgg_like')
+    # Normalize input data
+    rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1. / 255.0)(inputs)
+
+    # LeNet layers
+    x = tf.keras.layers.Conv2D(6, (5, 5), activation='tanh', padding='valid')(rescale)
+    x = tf.keras.layers.AveragePooling2D(pool_size=(2, 2), strides=2)(x)
+
+    x = tf.keras.layers.Conv2D(16, (5, 5), activation='tanh', padding='valid')(x)
+    x = tf.keras.layers.AveragePooling2D(pool_size=(2, 2), strides=2)(x)
+
+    x = tf.keras.layers.Flatten()(x)
+    x = tf.keras.layers.Dense(120, activation='tanh')(x)
+    x = tf.keras.layers.Dense(84, activation='tanh')(x)
+
+    outputs = tf.keras.layers.Dense(units=n_classes, activation='sigmoid')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='lenet')
