@@ -3,19 +3,41 @@ import tensorflow as tf
 
 
 @gin.configurable
-def inverted_residual_block(inputs, filters, expansion_factor, stride, alpha=1.0):
+def vgg_block(inputs, filters, kernel_size, n_conv_layers):
     """
-    Defines an inverted residual block with optional expansion.
+    A single VGG block consisting of multiple convolutional layers, followed by a max-pooling layer
 
-    Args:
-        inputs (Tensor): Input tensor.
-        filters (int): Number of output filters.
-        expansion_factor (int): Expansion factor for the input channels.
-        stride (int): Stride for the depthwise convolution.
-        alpha (float): Width multiplier for scaling the number of filters.
+    Parameters:
+        inputs (Tensor): input of the VGG block
+        filters (int): number of filters used for the convolutional layers
+        kernel_size (tuple: 2): kernel size used for the convolutional layers
+        n_conv_layers (int): number of convolutional layers in the block
 
     Returns:
-        Tensor: Output tensor after applying the inverted residual block.
+        (Tensor): output of the VGG block
+    """
+    x = inputs
+    for _ in range(n_conv_layers):
+        x = tf.keras.layers.Conv2D(filters, kernel_size, padding='same', activation=tf.nn.relu)(x)
+    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    return x
+
+
+@gin.configurable
+def inverted_residual_block(inputs, filters, expansion_factor, stride, alpha=1.0):
+    """
+    Defines an inverted residual block with optional expansion
+
+    Args:
+        inputs (Tensor): Input tensor
+        filters (int): Number of output filters
+        expansion_factor (int): Expansion factor for the input channels
+        stride (int): Stride for the depthwise convolution
+        alpha (float): Width multiplier for scaling the number of filters
+
+    Returns:
+        Tensor: Output tensor after applying the inverted residual block
     """
     input_channels = inputs.shape[-1]
     expanded_channels = input_channels * expansion_factor
