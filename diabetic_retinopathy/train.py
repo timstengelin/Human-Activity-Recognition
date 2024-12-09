@@ -22,6 +22,7 @@ class Trainer(object):
         self.val_loss = tf.keras.metrics.Mean(name='val_loss')
         self.val_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='val_accuracy')
 
+        # Attributes
         self.model = model
         self.ds_train = ds_train
         self.ds_val = ds_val
@@ -30,6 +31,10 @@ class Trainer(object):
         self.total_steps = total_steps
         self.log_interval = log_interval
         self.ckpt_interval = ckpt_interval
+
+        # Summary writer
+        self.train_summary_writer = tf.summary.create_file_writer(self.run_paths['path_summary_train'])
+        self.val_summary_writer = tf.summary.create_file_writer(self.run_paths['path_summary_val'])
 
     @tf.function
     def train_step(self, images, labels):
@@ -60,6 +65,11 @@ class Trainer(object):
             step = idx + 1
             self.train_step(images, labels)
 
+            # Write train summary to tensorboard
+            with self.train_summary_writer.as_default():
+                tf.summary.scalar('loss', self.train_loss.result(), step=step)
+                tf.summary.scalar('accuracy', self.train_accuracy.result() * 100, step=step)
+
             if step % self.log_interval == 0:
 
                 # Reset test metrics
@@ -76,8 +86,10 @@ class Trainer(object):
                                              self.val_loss.result(),
                                              self.val_accuracy.result() * 100))
                 
-                # Write summary to tensorboard
-                # ...
+                # Write validation summary to tensorboard
+                with self.val_summary_writer.as_default():
+                    tf.summary.scalar('loss', self.val_loss.result(), step=step)
+                    tf.summary.scalar('accuracy', self.val_accuracy.result() * 100, step=step)
 
                 # Reset train metrics
                 self.train_loss.reset_states()
