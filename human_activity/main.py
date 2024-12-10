@@ -56,8 +56,6 @@ def main(argv):
             continue
     else:
         utils_misc.set_loggers(run_paths['path_logs_eval'], logging.INFO)
-        print(feature_shape, label_shape)
-
         evaluate(model=model,
                  ds_test=ds_test,
                  run_paths=run_paths,
