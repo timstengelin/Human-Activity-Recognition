@@ -46,7 +46,7 @@ def evaluate(model, ds_test, run_paths, n_classes):
         print(batch[0].shape)  # Überprüfe die Form der Eingabedaten
         print(batch[1].shape)
     '''
-
+    print(accuracy.result().numpy())
     # TODO: Not working
     # evaluate the model
     # result = model.evaluate(ds_test, return_dict=False, steps=20)
