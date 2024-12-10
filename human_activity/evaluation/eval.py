@@ -3,6 +3,9 @@ import gin
 import evaluation.metrics as metrics
 import logging
 import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sn
 
 @gin.configurable
 def evaluate(model, ds_test, run_paths, n_classes):
@@ -31,10 +34,14 @@ def evaluate(model, ds_test, run_paths, n_classes):
                   metrics=["accuracy"])#, [ConfusionMatrix(num_categories=num_categories)]])
 
     accuracy = metrics.Categorical_Accuracy()
+    conf_matrix = metrics.ConfusionMatrix(n_classes=n_classes)
+
     for data, label in ds_test:
         y_pred = model(data)
         accuracy.update_state(label, y_pred)
+        conf_matrix.update_state(label, y_pred)
         print(accuracy.result().numpy())
+        print(conf_matrix.result())
         break
     '''
         for batch in ds_test.take(1):  # Nimm einen Batch aus dem Dataset
@@ -52,3 +59,12 @@ def evaluate(model, ds_test, run_paths, n_classes):
     #     logging.info('{}:\n{}'.format(key, value))
 
     # print(result)
+
+    # plot the confusion matrix
+    array = conf_matrix.result()
+    df_cm = pd.DataFrame(array, index=[i for i in "ABCDEFGHIJKL"],
+                         columns=[i for i in "ABCDEFGHIJKL"])
+    plt.figure(figsize=(10, 7))
+    sn.heatmap(df_cm, annot=True)
+    # plt.show()
+    plt.savefig('foo.png')
