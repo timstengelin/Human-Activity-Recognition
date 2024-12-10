@@ -59,7 +59,7 @@ def main(argv):
         print(feature_shape, label_shape)
 
         evaluate(model=model,
-                 ds_test=ds_val,
+                 ds_test=ds_test,
                  run_paths=run_paths,
                  n_classes=label_shape[-1])
 
