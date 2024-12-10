@@ -61,7 +61,10 @@ def evaluate(model, ds_test, run_paths, n_classes):
     # print(result)
 
     # plot the confusion matrix
-    array = conf_matrix.result()
+    array = conf_matrix.result().numpy()
+    # normalize confusion matrix
+    array = np.around(array.astype('float') / (array.sum(axis=1))[:, np.newaxis], decimals=2)
+    plt.title("Confusion matrix")
     df_cm = pd.DataFrame(array, index=[i for i in "ABCDEFGHIJKL"],
                          columns=[i for i in "ABCDEFGHIJKL"])
     plt.figure(figsize=(10, 7))
