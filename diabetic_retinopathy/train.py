@@ -65,14 +65,15 @@ class Trainer(object):
         # otherwise, if it's the initial step of training, start from the beginning
         self.ckpt.restore(self.ckpt_manager.latest_checkpoint)
         if self.ckpt_manager.latest_checkpoint:
-            logging.info("Restored training data from {}".format(self.ckpt_manager.latest_checkpoint))
+            logging.info("Restored from checkpoint {}".format(self.ckpt_manager.latest_checkpoint))
             self.ckpt.step.assign_add(1)
         else:
-            logging.info("Starting training for a new model...")
+            logging.info("Initializing from scratch.")
+
 
         for idx, (images, labels) in enumerate(self.ds_train):
+            step = int(self.ckpt.step.numpy())
 
-            step = idx + 1
             self.train_step(images, labels)
 
             # Write train summary to tensorboard
@@ -107,13 +108,15 @@ class Trainer(object):
 
                 yield self.val_accuracy.result().numpy()
 
-            if step % self.ckpt_interval == 0:
+            if int(self.ckpt.step) % self.ckpt_interval == 0:
                 # Save checkpoint
-                self.ckpt_manager.save()
-                logging.info(f'Saving checkpoint to {self.run_paths["path_ckpts_train"]}.')
+                ckpt_path = self.ckpt_manager.save()
+                logging.info(f"Checkpoint saved at step {int(self.ckpt.step)}: {ckpt_path}")
 
             if step % self.total_steps == 0:
                 # Save final checkpoint
-                self.ckpt_manager.save()
-                logging.info(f'Finished training after {step} steps.')
+                ckpt_path = self.ckpt_manager.save()
+                logging.info(f"Final checkpoint saved at step {int(self.ckpt.step)}: {ckpt_path}")
                 return self.val_accuracy.result().numpy()
+
+            self.ckpt.step.assign_add(1)
