@@ -25,6 +25,32 @@ def vgg_block(inputs, filters, kernel_size, n_conv_layers):
 
 
 @gin.configurable
+def alex_net_block(inputs, filters, kernel_size, strides, padding, n_conv_layers=1):
+    '''
+    A single VGG block consisting of multiple convolutional layers, followed by a max-pooling layer
+
+    Parameters:
+        inputs (Tensor): input of the AlexNet block
+        filters (int): number of filters used for the convolutional layers
+        kernel_size (tuple: 2): kernel size used for the convolutional layers
+        stride (int): stride size for the convolution
+        padding (string): padding type, 'valid' or 'same'
+        n_conv_layers (int): number of convolutional layers in the block, default is 1
+
+    Returns:
+        (Tensor): output of the VGG block
+    '''
+
+    x = inputs
+    for _ in range(n_conv_layers):
+        x = tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding=padding, activation=tf.nn.relu)(x)
+        strides = 1  # Subsequent convolutions in the block use stride of 1
+    x = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding='valid')(x)
+
+    return x
+
+
+@gin.configurable
 def inverted_residual_block(inputs, filters, expansion_factor, stride, alpha=1.0):
     """
     Defines an inverted residual block with optional expansion

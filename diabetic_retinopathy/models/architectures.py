@@ -1,7 +1,7 @@
 import gin
 import tensorflow as tf
 
-from models.layers import vgg_block, inverted_residual_block
+from models.layers import alex_net_block, vgg_block, inverted_residual_block
 
 @gin.configurable
 def le_net(input_shape, n_classes):
@@ -36,6 +36,41 @@ def le_net(input_shape, n_classes):
     outputs = tf.keras.layers.Dense(units=n_classes, activation='sigmoid')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='lenet')
+
+@gin.configurable
+def alex_net(input_shape, n_classes):
+    '''
+    Defines the AlexNet architecture
+
+    Parameters:
+        input_shape (tuple: 3): input shape of the neural network
+        n_classes (int): number of classes, corresponding to the number of output neurons
+
+    Returns:
+        (tf.keras.Model): VGG16 model
+    '''
+
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
+
+    # Normalize input data
+    rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1. / 255.0)(inputs)
+
+    # AlexNet layers
+    x = alex_net_block(rescale, 96, (11, 11), strides=4, padding='valid')
+    x = alex_net_block(x, 256, (5, 5), strides=1, padding='same')
+    x = alex_net_block(x, 384, (3, 3), strides=1, padding='same', n_conv_layers=3)
+
+    # Flatten and dense layers
+    x = tf.keras.layers.Flatten()(x)
+    x = tf.keras.layers.Dense(4096, activation='relu')(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Dense(4096, activation='relu')(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
+
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='alexnet')
 
 
 @gin.configurable
