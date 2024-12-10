@@ -19,6 +19,7 @@ def evaluate(model, ds_test, run_paths, n_classes):
         n_classes (int): number of one hot encoded labels
     """
 
+    logging.info(f'Starting evaluation of following model from {run_paths["path_ckpts_train"]}.')
     # set up the model and load the checkpoint
     checkpoint = tf.train.Checkpoint(step=tf.Variable(1), optimizer=tf.keras.optimizers.Adam(), net=model)
     checkpoint_manager = tf.train.CheckpointManager(checkpoint, run_paths["path_ckpts_train"], max_to_keep=10)
@@ -41,22 +42,7 @@ def evaluate(model, ds_test, run_paths, n_classes):
         accuracy.update_state(label, y_pred)
         conf_matrix.update_state(label, y_pred)
         break
-    '''
-        for batch in ds_test.take(1):  # Nimm einen Batch aus dem Dataset
-        print(batch[0].shape)  # Überprüfe die Form der Eingabedaten
-        print(batch[1].shape)
-    '''
-    print(accuracy.result().numpy())
-    # TODO: Not working
-    # evaluate the model
-    # result = model.evaluate(ds_test, return_dict=False, steps=20)
-
-    # log the evaluation information
-    # logging.info(f"Evaluating at step: {step}...")
-    # for key, value in result.items():
-    #     logging.info('{}:\n{}'.format(key, value))
-
-    # print(result)
+    logging.info(f'Calculated categorical accuracy for test dataset: {accuracy.result().numpy()}')
 
 
     classes = ["WALKING", "WALKING_UPSTAIRS", "WALKING_DOWNSTAIRS", "SITTING", "STANDING", "LAYING", "STAND_TO_SIT",
