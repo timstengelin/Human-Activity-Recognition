@@ -40,8 +40,6 @@ def evaluate(model, ds_test, run_paths, n_classes):
         y_pred = model(data)
         accuracy.update_state(label, y_pred)
         conf_matrix.update_state(label, y_pred)
-        print(accuracy.result().numpy())
-        print(conf_matrix.result())
         break
     '''
         for batch in ds_test.take(1):  # Nimm einen Batch aus dem Dataset
@@ -60,13 +58,16 @@ def evaluate(model, ds_test, run_paths, n_classes):
 
     # print(result)
 
+
+    classes = ["WALKING", "WALKING_UPSTAIRS", "WALKING_DOWNSTAIRS", "SITTING", "STANDING", "LAYING", "STAND_TO_SIT",
+               "SIT_TO_STAND", "SIT_TO_LIE", "LIE_TO_SIT", "STAND_TO_LIE", "LIE_TO_STAND"]
     # plot the confusion matrix
     array = conf_matrix.result().numpy()
     # normalize confusion matrix
     array = np.around(array.astype('float') / (array.sum(axis=1))[:, np.newaxis], decimals=2)
     plt.title("Confusion matrix")
-    df_cm = pd.DataFrame(array, index=[i for i in "ABCDEFGHIJKL"],
-                         columns=[i for i in "ABCDEFGHIJKL"])
+    df_cm = pd.DataFrame(array, index=[i for i in classes],
+                         columns=[i for i in classes])
     plt.figure(figsize=(10, 7))
     sn.heatmap(df_cm, annot=True)
     # plt.show()
