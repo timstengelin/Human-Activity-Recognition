@@ -4,6 +4,7 @@ from scipy.ndimage import median_filter
 import tensorflow as tf
 import logging
 import matplotlib
+import os
 
 
 def visulization(model, run_paths, dataset):
@@ -21,10 +22,6 @@ def visulization(model, run_paths, dataset):
     checkpoint_manager = tf.train.CheckpointManager(checkpoint, run_paths["path_ckpts_train"], max_to_keep=10)
     checkpoint.restore(checkpoint_manager.latest_checkpoint)
 
-    # pred_list = []
-    # label_list = []
-    # acc_x, acc_y, acc_z = [], [], []
-    # gyro_x, gyro_y, gyro_z = [], [], []
     for idx, (window, label) in enumerate(dataset):
         model.compile(optimizer=tf.keras.optimizers.Adam(),
                       loss=tf.keras.losses.CategoricalCrossentropy())
@@ -40,27 +37,13 @@ def visulization(model, run_paths, dataset):
         label = np.concatenate(label.numpy()[0::2])
         window = np.concatenate(window.numpy()[0::2])
 
-        # pred_list.append(prediction)
-        # label_list.append(label)
-
         acc_x = window[:,0]
         acc_y = window[:,1]
         acc_z = window[:,2]
         gyro_x = window[:,3]
         gyro_y = window[:,4]
         gyro_z = window[:,5]
-        #acc_x.append(window_sequence[:, 0]), acc_y.append(window_sequence[:, 1]), acc_z.append(window_sequence[:, 2])
-        #gyro_x.append(window_sequence[:, 3]), gyro_y.append(window_sequence[:, 4]), gyro_z.append(window_sequence[:, 5])
         break
-    #     if idx >= 0:
-    #         break
-    # acc_x, acc_y, acc_z = np.concatenate(acc_x), np.concatenate(acc_y), np.concatenate(acc_z)
-    # gyro_x, gyro_y, gyro_z = np.concatenate(gyro_x), np.concatenate(gyro_y), np.concatenate(gyro_z)
-    #
-    # # postprocess the predictions
-    # preds = np.concatenate(pred_list)
-    # labels = np.concatenate(label_list)
-    #
 
     # Filtering of the classes to smooth out small mistakes
     prediction = median_filter(prediction, size=140)
@@ -100,7 +83,6 @@ def visulization(model, run_paths, dataset):
     fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1,figsize=(12,9), height_ratios=[3,3,1])
                                         #gridspec_kw={"width_ratios": [3, 3],
                                         #"height_ratios": [3, 3], "wspace" : 0.4, "hspace" : 0.4})
-    # ax11 = plt.subplot(3, 1, 1)
     ax1.set_title(label='PREDICTIONS', fontdict={'weight': 'normal', 'size': 'x-large'})
     plt.tick_params(labelsize='x-small')
     ax1.set_xlabel("TIME SEQUENCE")
@@ -114,7 +96,6 @@ def visulization(model, run_paths, dataset):
     plt.plot(gyro_y, label='gyro_y', linewidth=1)
     plt.plot(gyro_z, label='gyro_z', linewidth=1)
     labeling(prediction)
-    # ax21 = plt.subplot(3, 1, 2)
     ax2.set_title('TRUE VALUES', fontdict={'weight': 'normal', 'size': 'x-large'})
     plt.tick_params(labelsize='x-small')
     ax2.set_xlabel("TIME SEQUENCE")
@@ -128,7 +109,6 @@ def visulization(model, run_paths, dataset):
     plt.plot(gyro_y, label='gyro_y', linewidth=1)
     plt.plot(gyro_z, label='gyro_z', linewidth=1)
     labeling(label)
-    # ax31 = plt.subplot(3, 1, 3)
     legending(np.array([0,1,2,3,4,5,6,7,8,9,10,11]), ax3)
     ax3.set_yticks([])
     positions = [0,1,2,3,4,5,6,7,8,9,10,11]
@@ -136,11 +116,10 @@ def visulization(model, run_paths, dataset):
               "STAND_TO_SIT", "SIT_TO_STAND", "SIT_TO_LIE", "LIE_TO_SIT", "STAND_TO_LIE", "LIE_TO_STAND"]
     ax3.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(positions))
     ax3.xaxis.set_major_formatter(matplotlib.ticker.FixedFormatter(labels))
-    # plt.figure(figsize=(12, 1))
     ax3.tick_params(axis='x', labelrotation=45)
     ax1.margins(0,0)
     ax2.margins(0, 0)
     ax3.margins(0, 0)
     plt.tight_layout()
-    plt.savefig('plot.png', dpi=150)
+    plt.savefig(os.path.join(run_paths['path_board_val'], 'sequence_visualization.png'), dpi=150)
     plt.show()
