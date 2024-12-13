@@ -1,54 +1,56 @@
 import logging
 import gin
 
-import ray
-from ray import tune
+# import ray
+# from ray import tune
 
-from input_pipeline.datasets import load
-from models.architectures import vgg_like
 from train import Trainer
 from utils import utils_params, utils_misc
+import input_pipeline.datasets as datasets
+import models.architectures as architectures
 
+import wandb
+def tune(run_paths):
+    # parameters
+    lr_rate = 1e-4
+    steps = 1e3
+    model_name = "GRU_model"
 
-def train_func(config):
-    # Hyperparameters
-    bindings = []
-    for key, value in config.items():
-        bindings.append(f'{key}={value}')
+    wandb.login(key="8478ddb0f2c0978283abcb1e18db08bebd904d3f")
 
-    # generate folder structures
-    run_paths = utils_params.gen_run_folder(','.join(bindings))
+    # 1. Start a W&B run
+    run = wandb.init(
+        # Set the project where this run will be logged
+        project="iss-dl15",
+        # Track hyperparameters and run metadata
+        config={
+            "learning_rate": lr_rate,
+            "steps": steps,
+            "model_name": model_name
+        },
+    )
 
-    # set loggers
-    utils_misc.set_loggers(run_paths['path_logs_train'], logging.INFO)
+    # Model training code here ...
+    ds_train, ds_val, ds_test, ds_info = datasets.load()
 
-    # gin-config
-    gin.parse_config_files_and_bindings(['/absolute/path/to/configs/config.gin'], bindings) # change path to absolute path of config file
-    utils_params.save_config(run_paths['path_gin'], gin.config_str())
+    # get shape from actual dataset
+    feature_shape = None
+    label_shape = None
+    for data, label in ds_train:
+        feature_shape = data.shape[1:]
+        label_shape = label.shape[1:]
+        break
 
-    # setup pipeline
-    ds_train, ds_val, ds_test, ds_info = load()
+    if model_name == "LSTM_model":
+        model = architectures.lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "GRU_model":
+        model = architectures.gru_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "RNN_model":
+        model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
 
-    # model
-    model = vgg_like(input_shape=ds_info.features["image"].shape, n_classes=ds_info.features["label"].num_classes)
+    trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val,
+                      run_paths=run_paths, total_steps=steps, tuning=True)
+    for _ in trainer.train():
+        continue
 
-    trainer = Trainer(model, ds_train, ds_val, ds_info, run_paths)
-    for val_accuracy in trainer.train():
-        tune.report(val_accuracy=val_accuracy)
-
-
-ray.init(num_cpus=10, num_gpus=1)
-analysis = tune.run(
-    train_func, num_samples=2, resources_per_trial={"cpu": 10, "gpu": 1},
-    config={
-        "Trainer.total_steps": tune.grid_search([1e4]),
-        "vgg_like.base_filters": tune.choice([8, 16]),
-        "vgg_like.n_blocks": tune.choice([2, 3, 4, 5]),
-        "vgg_like.dense_units": tune.choice([32, 64]),
-        "vgg_like.dropout_rate": tune.uniform(0, 0.9),
-    })
-
-print("Best config: ", analysis.get_best_config(metric="val_accuracy", mode="max"))
-
-# Get a dataframe for analyzing trial results.
-df = analysis.dataframe()
+    wandb.finish()

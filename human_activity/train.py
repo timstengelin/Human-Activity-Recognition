@@ -1,10 +1,12 @@
 import gin
 import tensorflow as tf
 import logging
+import wandb
 
 @gin.configurable
 class Trainer(object):
-    def __init__(self, model, ds_train, ds_val, learning_rate, run_paths, total_steps, log_interval, ckpt_interval):
+    def __init__(self, model, ds_train, ds_val, learning_rate, run_paths,
+                 total_steps, log_interval, ckpt_interval, tuning=False):
         # Loss objective
         self.loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -24,6 +26,7 @@ class Trainer(object):
         self.total_steps = total_steps
         self.log_interval = log_interval
         self.ckpt_interval = ckpt_interval
+        self.tuning = tuning
 
         # Checkpoint Manager
         self.ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=self.optimizer, net=self.model)
@@ -121,6 +124,12 @@ class Trainer(object):
                 with self.val_summary_writer.as_default():
                     tf.summary.scalar('loss', self.val_loss.result(), step=step)
                     tf.summary.scalar('accuracy', self.val_accuracy.result() * 100, step=step)
+
+                if self.tuning:
+                    wandb.log({"acc_train": self.train_accuracy.result()*100,
+                               "loss_train": self.train_loss.result(),
+                               "acc_val": self.val_accuracy.result()*100,
+                               "loss_val": self.val_loss.result(),})
 
                 # Reset train metrics
                 self.train_loss.reset_states()

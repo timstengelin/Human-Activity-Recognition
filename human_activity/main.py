@@ -9,11 +9,13 @@ from input_pipeline import datasets
 from utils import utils_params, utils_misc
 import models.architectures as architectures
 import tensorflow as tf
+import tune as tuning
 
 
 train = False
 
 def main(argv):
+    tune = True
 
     # collect data from gin config file
     gin.parse_config_files_and_bindings(['configs/config.gin'], [])
@@ -51,12 +53,14 @@ def main(argv):
     elif model_name == "RNN_model":
         model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
 
-    if train:
+    if train and not tune:
         # TODO: Loss with zero labels
         # initialize Trainer class based on given model and datasets
         trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, run_paths=run_paths)
         for _ in trainer.train():
             continue
+    elif tune and not train:
+        tuning.tune(run_paths)
     else:
         utils_misc.set_loggers(run_paths['path_logs_eval'], logging.INFO)
         evaluate(model=model,
