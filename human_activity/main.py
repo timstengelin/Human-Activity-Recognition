@@ -10,10 +10,11 @@ from utils import utils_params, utils_misc
 import models.architectures as architectures
 import tensorflow as tf
 
-FLAGS = flags.FLAGS
-flags.DEFINE_boolean('train', False, 'Specify whether to train or evaluate a model.')
+
+train = False
 
 def main(argv):
+
     # collect data from gin config file
     gin.parse_config_files_and_bindings(['configs/config.gin'], [])
 
@@ -50,7 +51,7 @@ def main(argv):
     elif model_name == "RNN_model":
         model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
 
-    if FLAGS.train:
+    if train:
         # TODO: Loss with zero labels
         # initialize Trainer class based on given model and datasets
         trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, run_paths=run_paths)
