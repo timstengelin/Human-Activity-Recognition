@@ -11,7 +11,7 @@ experiments/
 diabetic_retinopathy/input_pipeline/records/
 human_activity/input_pipeline/tfrecord_files/
 *.png
-
+wandb/
 # C extensions
 *.so
 
