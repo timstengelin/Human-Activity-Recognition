@@ -20,17 +20,17 @@ def evaluate(model, ds_test, run_paths, n_classes):
         n_classes (int): number of one hot encoded labels
     """
 
-    logging.info(f'Starting evaluation of following model from {run_paths["path_ckpts_train"]}.')
+    logging.info(f'Starting evaluation via metrics of following model from {run_paths["path_ckpts_train"]}.')
     # set up the model and load the checkpoint
     checkpoint = tf.train.Checkpoint(step=tf.Variable(1), optimizer=tf.keras.optimizers.Adam(), net=model)
     checkpoint_manager = tf.train.CheckpointManager(checkpoint, run_paths["path_ckpts_train"], max_to_keep=10)
-    checkpoint.restore(checkpoint_manager.latest_checkpoint)
+    checkpoint.restore(checkpoint_manager.latest_checkpoint).expect_partial()
 
     if checkpoint_manager.latest_checkpoint:
         logging.info("Restored model from {}".format(checkpoint_manager.latest_checkpoint))
 
     # compile the model
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
+    model.compile(optimizer=tf.keras.optimizers.Adam(),
                   loss=tf.keras.losses.CategoricalCrossentropy(from_logits=False),
                   metrics=["accuracy"])#, [ConfusionMatrix(num_categories=num_categories)]])
 

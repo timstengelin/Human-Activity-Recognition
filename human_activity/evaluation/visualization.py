@@ -16,11 +16,11 @@ def visulization(model, run_paths, dataset):
         dataset (tf.data.Dataset): dataset to be visualized
     """
 
-    logging.info(f'Starting visualization of following model from {run_paths["path_ckpts_train"]}.')
+    logging.info(f'Starting evaluation via sequence visualization of following model from {run_paths["path_ckpts_train"]}.')
     # set up the model and load the checkpoint
     checkpoint = tf.train.Checkpoint(step=tf.Variable(1), optimizer=tf.keras.optimizers.Adam(), net=model)
     checkpoint_manager = tf.train.CheckpointManager(checkpoint, run_paths["path_ckpts_train"], max_to_keep=10)
-    checkpoint.restore(checkpoint_manager.latest_checkpoint)
+    checkpoint.restore(checkpoint_manager.latest_checkpoint).expect_partial()
 
     for idx, (window, label) in enumerate(dataset):
         model.compile(optimizer=tf.keras.optimizers.Adam(),
