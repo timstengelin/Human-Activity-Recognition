@@ -3,16 +3,16 @@ import numpy as np
 from scipy.ndimage import median_filter
 import tensorflow as tf
 import logging
+import matplotlib
 
 
-def visulization(model, run_paths, dataset, n_classes=12):
+def visulization(model, run_paths, dataset):
     """visualize a sequence
 
     Parameters:
         model (keras.Model): keras model object to be evaluated
         run_paths (dictionary): storage path of model information
         dataset (tf.data.Dataset): dataset to be visualized
-        n_classes (int): number of classes
     """
 
     logging.info(f'Starting visualization of following model from {run_paths["path_ckpts_train"]}.')
@@ -21,42 +21,61 @@ def visulization(model, run_paths, dataset, n_classes=12):
     checkpoint_manager = tf.train.CheckpointManager(checkpoint, run_paths["path_ckpts_train"], max_to_keep=10)
     checkpoint.restore(checkpoint_manager.latest_checkpoint)
 
-    pred_list = []
-    label_list = []
-    acc_x, acc_y, acc_z = [], [], []
-    gyro_x, gyro_y, gyro_z = [], [], []
-    for idx, (window_sequence, label) in enumerate(dataset):
+    # pred_list = []
+    # label_list = []
+    # acc_x, acc_y, acc_z = [], [], []
+    # gyro_x, gyro_y, gyro_z = [], [], []
+    for idx, (window, label) in enumerate(dataset):
         model.compile(optimizer=tf.keras.optimizers.Adam(),
                       loss=tf.keras.losses.CategoricalCrossentropy())
-        prediction = model(window_sequence)
+        # get prediction from dataset/batch (None,250,12)
+        prediction = model(window)
+
+        # get predicted/true class for each timestep -> (None,250)
         prediction = tf.argmax(prediction, axis=-1)
-        prediction = np.concatenate(prediction.numpy())
         label = tf.argmax(label, axis=-1)
+
+        # append all prediction/true classes and data from dataset/batch to have one timeline
+        prediction = np.concatenate(prediction.numpy())
         label = np.concatenate(label.numpy())
-        pred_list.append(prediction)
-        label_list.append(label)
-        window_sequence = np.concatenate(window_sequence.numpy())
-        acc_x.append(window_sequence[:, 0]), acc_y.append(window_sequence[:, 1]), acc_z.append(window_sequence[:, 2])
-        gyro_x.append(window_sequence[:, 3]), gyro_y.append(window_sequence[:, 4]), gyro_z.append(window_sequence[:, 5])
+        window = np.concatenate(window.numpy())
+
+        # pred_list.append(prediction)
+        # label_list.append(label)
+
+        acc_x = window[:,0]
+        acc_y = window[:,1]
+        acc_z = window[:,2]
+        gyro_x = window[:,3]
+        gyro_y = window[:,4]
+        gyro_z = window[:,5]
+        #acc_x.append(window_sequence[:, 0]), acc_y.append(window_sequence[:, 1]), acc_z.append(window_sequence[:, 2])
+        #gyro_x.append(window_sequence[:, 3]), gyro_y.append(window_sequence[:, 4]), gyro_z.append(window_sequence[:, 5])
         break
     #     if idx >= 0:
     #         break
-    acc_x, acc_y, acc_z = np.concatenate(acc_x), np.concatenate(acc_y), np.concatenate(acc_z)
-    gyro_x, gyro_y, gyro_z = np.concatenate(gyro_x), np.concatenate(gyro_y), np.concatenate(gyro_z)
+    # acc_x, acc_y, acc_z = np.concatenate(acc_x), np.concatenate(acc_y), np.concatenate(acc_z)
+    # gyro_x, gyro_y, gyro_z = np.concatenate(gyro_x), np.concatenate(gyro_y), np.concatenate(gyro_z)
     #
     # # postprocess the predictions
-    preds = np.concatenate(pred_list)
-    # preds = median_filter(preds, size=140)
-    labels = np.concatenate(label_list)
+    # preds = np.concatenate(pred_list)
+    # labels = np.concatenate(label_list)
     #
-    def labeling(labels, num_categories):
+
+    # Filtering of the classes to smooth out small mistakes
+    prediction = median_filter(prediction, size=140)
+
+    def legending(labels):
         """define the color map corresponding to each label"""
-        if num_categories == 13:
-            label_color = ['white', 'dimgrey', 'darkorange', 'limegreen', 'royalblue', 'lightcoral', 'gold',
-                           'aquamarine', 'mediumslateblue', 'saddlebrown', 'chartreuse', 'skyblue', 'violet']
-        else:
-            label_color = ['dimgrey', 'darkorange', 'limegreen', 'royalblue', 'lightcoral', 'gold',
-                           'aquamarine', 'mediumslateblue', 'saddlebrown', 'chartreuse', 'skyblue', 'violet']
+        label_color = ['dimgrey', 'darkorange', 'limegreen', 'royalblue', 'lightcoral', 'gold',
+                        'aquamarine', 'mediumslateblue', 'saddlebrown', 'chartreuse', 'skyblue', 'violet']
+        start = 0
+        for i in range(1, int(labels.size)):
+            plt.axvspan(i-1.5, i-0.5, facecolor=label_color[labels[i-1]], alpha=0.5)
+    def labeling(labels):
+        """define the color map corresponding to each label"""
+        label_color = ['dimgrey', 'darkorange', 'limegreen', 'royalblue', 'lightcoral', 'gold',
+                        'aquamarine', 'mediumslateblue', 'saddlebrown', 'chartreuse', 'skyblue', 'violet']
         start = 0
         for i in range(1, int(labels.size)):
             if labels[i] != labels[i - 1]:
@@ -64,22 +83,26 @@ def visulization(model, run_paths, dataset, n_classes=12):
                 plt.axvspan(start, end, facecolor=label_color[labels[i - 1]], alpha=0.5)
                 start = i
         plt.axvspan(start, int(labels.size) - 1, facecolor=label_color[labels[-1]], alpha=0.5)
-    #
-    # intercept sequence of a certain length
-    view = [0, 15000]
-    acc_x, acc_y, acc_z = acc_x[view[0]:view[1]], acc_y[view[0]:view[1]], acc_z[view[0]:view[1]]
-    gyro_x, gyro_y, gyro_z = gyro_x[view[0]:view[1]], gyro_y[view[0]:view[1]], gyro_z[view[0]:view[1]]
-    preds = preds[view[0]:view[1]]
-    labels = labels[view[0]:view[1]]
+
+    # limit sequence, that is shown from available dataset
+    range_time = [3000, 4000]
+    acc_x, acc_y, acc_z = (acc_x[range_time[0]:range_time[1]], acc_y[range_time[0]:range_time[1]],
+                           acc_z[range_time[0]:range_time[1]])
+    gyro_x, gyro_y, gyro_z = (gyro_x[range_time[0]:range_time[1]], gyro_y[range_time[0]:range_time[1]],
+                              gyro_z[range_time[0]:range_time[1]])
+    prediction = prediction[range_time[0]:range_time[1]]
+    label = label[range_time[0]:range_time[1]]
 
     # plot the data as well as  their predictions and labels (the first figure is generated from predicted value, the second is the true distribution)
-    plt.figure(figsize=(12, 6), dpi=150)
-    ax11 = plt.subplot(2, 1, 1)
-    plt.title('PREDICTION', fontdict={'weight': 'normal', 'size': 'x-large'})
+    plt.figure(figsize=(12, 9), dpi=300)
+
+    # plot prediction coming from model
+    ax11 = plt.subplot(3, 1, 1)
+    plt.title(label='PREDICTIONS', fontdict={'weight': 'normal', 'size': 'x-large'})
     plt.tick_params(labelsize='x-small')
     ax11.set_xlabel("TIME SEQUENCE")
     ax11.set_ylabel("NORMALIZED LINEAR ACCELERATION")
-    ax12 = ax11.twinx()
+    ax12 = ax11.twinx() # same x-axis for other y-data
     ax12.set_ylabel("NORMALIZED AUGULAR VELOCITY")
     plt.plot(acc_x, label='acc_x', linewidth=1)
     plt.plot(acc_y, label='acc_y', linewidth=1)
@@ -87,12 +110,12 @@ def visulization(model, run_paths, dataset, n_classes=12):
     plt.plot(gyro_x, label='gyro_x', linewidth=1)
     plt.plot(gyro_y, label='gyro_y', linewidth=1)
     plt.plot(gyro_z, label='gyro_z', linewidth=1)
-    labeling(preds, n_classes)
-    ax21 = plt.subplot(2, 1, 2)
+    labeling(prediction)
+    ax21 = plt.subplot(3, 1, 2)
     plt.title('TRUE VALUES', fontdict={'weight': 'normal', 'size': 'x-large'})
     plt.tick_params(labelsize='x-small')
     ax21.set_xlabel("TIME SEQUENCE")
-    ax11.set_ylabel("NORMALIZED LINEAR ACCELERATION")
+    ax21.set_ylabel("NORMALIZED LINEAR ACCELERATION")
     ax22 = ax21.twinx()
     ax22.set_ylabel("NORMALIZED AUGULAR VELOCITY")
     plt.plot(acc_x, label='acc_x', linewidth=1)
@@ -101,7 +124,18 @@ def visulization(model, run_paths, dataset, n_classes=12):
     plt.plot(gyro_x, label='gyro_x', linewidth=1)
     plt.plot(gyro_y, label='gyro_y', linewidth=1)
     plt.plot(gyro_z, label='gyro_z', linewidth=1)
-    labeling(labels, n_classes)
+    labeling(label)
+    ax31 = plt.subplot(3, 1, 3)
+    ax31.set_xlabel("CLASSES")
+    legending(np.array([0,1,2,3,4,5,6,7,8,9,10,11]))
+    plt.yticks([])
+    positions = [0,1,2,3,4,5,6,7,8,9,10,11]
+    labels = ["WALKING", "WALKING_UPSTAIRS", "WALKING_DOWNSTAIRS", "SITTING", "STANDING", "LAYING",
+              "STAND_TO_SIT", "SIT_TO_STAND", "SIT_TO_LIE", "LIE_TO_SIT", "STAND_TO_LIE", "LIE_TO_STAND"]
+    ax31.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(positions))
+    ax31.xaxis.set_major_formatter(matplotlib.ticker.FixedFormatter(labels))
+    plt.figure(figsize=(12, 1))
+    plt.xticks(rotation=70)
     plt.tight_layout()
     plt.savefig('plot.png', dpi=150)
     plt.show()
