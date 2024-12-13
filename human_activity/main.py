@@ -4,6 +4,7 @@ from absl import app, flags
 
 from train import Trainer
 from evaluation.eval import evaluate
+from evaluation.visualization import visulization
 from input_pipeline import datasets
 from utils import utils_params, utils_misc
 import models.architectures as architectures
@@ -41,7 +42,7 @@ def main(argv):
         label_shape = label.shape[1:]
         break
 
-    model_name = "LSTM_model"
+    model_name = "GRU_model"
     if model_name == "LSTM_model":
         model = architectures.lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
     elif model_name == "GRU_model":
@@ -50,6 +51,7 @@ def main(argv):
         model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
 
     if FLAGS.train:
+        # TODO: Loss with zero labels
         # initialize Trainer class based on given model and datasets
         trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, run_paths=run_paths)
         for _ in trainer.train():
@@ -60,6 +62,9 @@ def main(argv):
                  ds_test=ds_test,
                  run_paths=run_paths,
                  n_classes=label_shape[-1])
+        visulization(model=model,
+                     run_paths=run_paths,
+                     dataset=ds_test)
 
 if __name__ == "__main__":
     app.run(main)
