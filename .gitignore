@@ -10,6 +10,7 @@ __pycache__/
 experiments/
 diabetic_retinopathy/input_pipeline/records/
 human_activity/input_pipeline/tfrecord_files/
+*.png
 
 # C extensions
 *.so
