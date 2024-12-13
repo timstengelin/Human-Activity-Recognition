@@ -24,7 +24,6 @@ def evaluate(model, ds_test, run_paths, n_classes):
     checkpoint = tf.train.Checkpoint(step=tf.Variable(1), optimizer=tf.keras.optimizers.Adam(), net=model)
     checkpoint_manager = tf.train.CheckpointManager(checkpoint, run_paths["path_ckpts_train"], max_to_keep=10)
     checkpoint.restore(checkpoint_manager.latest_checkpoint)
-    step = int(checkpoint.step.numpy())
 
     if checkpoint_manager.latest_checkpoint:
         logging.info("Restored model from {}".format(checkpoint_manager.latest_checkpoint))
