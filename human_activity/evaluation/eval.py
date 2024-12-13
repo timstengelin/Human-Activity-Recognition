@@ -31,8 +31,7 @@ def evaluate(model, ds_test, run_paths, n_classes):
 
     # compile the model
     model.compile(optimizer=tf.keras.optimizers.Adam(),
-                  loss=tf.keras.losses.CategoricalCrossentropy(from_logits=False),
-                  metrics=["accuracy"])#, [ConfusionMatrix(num_categories=num_categories)]])
+                  loss=tf.keras.losses.CategoricalCrossentropy(from_logits=False))
 
     accuracy = metrics.Categorical_Accuracy()
     conf_matrix = metrics.ConfusionMatrix(n_classes=n_classes)
