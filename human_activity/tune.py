@@ -63,7 +63,7 @@ def tune(run_paths):
             'batch_size': 64
         }
         if config:
-            run = wandb.init(config=config, magic=True)
+            run = wandb.init(config=config)
 
             config = wandb.config
 
