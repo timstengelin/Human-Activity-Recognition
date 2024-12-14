@@ -45,6 +45,10 @@ def tune(run_paths):
         'batch_size': {
             'min': 8,
             'max': 128
+        },
+        'units': {
+            'min': 64,
+            'max': 256
         }
     }
     sweep_config['parameters'] = parameters_dict
@@ -60,7 +64,8 @@ def tune(run_paths):
             'drop_rate': 0.25,
             'window_size': 250,
             'window_shift': 125,
-            'batch_size': 64
+            'batch_size': 64,
+            'units': 64
         }
         if config:
             run = wandb.init(config=config)
@@ -83,13 +88,13 @@ def tune(run_paths):
 
             if config.model == "LSTM_model":
                 model = architectures.lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1],
-                                                        dropout_rate=config.drop_rate)
+                                                        dropout_rate=config.drop_rate, units=config.units)
             elif config.model == "GRU_model":
                 model = architectures.gru_architecture(input_shape=feature_shape, n_classes=label_shape[-1],
-                                                       dropout_rate=config.drop_rate)
+                                                       dropout_rate=config.drop_rate, units=config.units)
             elif config.model == "RNN_model":
                 model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1],
-                                                       dropout_rate=config.drop_rate)
+                                                       dropout_rate=config.drop_rate, units=config.units)
             trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val,
                               run_paths=run_paths, total_steps=config.steps, tuning=True, learning_rate=config.lr_rate)
             for _ in trainer.train():

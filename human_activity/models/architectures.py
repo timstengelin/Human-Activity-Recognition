@@ -4,7 +4,7 @@ import tensorflow as tf
 import models.layers as custom_layers
 
 @gin.configurable
-def lstm_architecture(input_shape, n_classes, dropout_rate):
+def lstm_architecture(input_shape, n_classes, dropout_rate, units):
     """A basic LSTM architecture
 
         Parameters:
@@ -16,14 +16,14 @@ def lstm_architecture(input_shape, n_classes, dropout_rate):
             (model): tensorflow keras model with given dimensions
     """
     inputs = tf.keras.Input(input_shape)
-    out = custom_layers.basic_lstm_layer(inputs=inputs, units=250, return_sequences=True)
-    out = custom_layers.basic_dense_layer(inputs=out, units=125)
+    out = custom_layers.basic_lstm_layer(inputs=inputs, units=units*2, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=units)
     out = tf.keras.layers.Dropout(dropout_rate)(out)
-    out = custom_layers.basic_lstm_layer(inputs=inputs, units=125, return_sequences=True)
-    out = custom_layers.basic_dense_layer(inputs=out, units=64)
+    out = custom_layers.basic_lstm_layer(inputs=inputs, units=units, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=units/2)
     out = tf.keras.layers.Dropout(dropout_rate)(out)
-    out = custom_layers.basic_lstm_layer(inputs=out, units=64, return_sequences=True)
-    out = custom_layers.basic_dense_layer(inputs=out, units=32)
+    out = custom_layers.basic_lstm_layer(inputs=out, units=units/2, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=units/4)
     out = tf.keras.layers.Dropout(dropout_rate)(out)
 
     out = custom_layers.basic_dense_layer(inputs=out, units=n_classes, activation="softmax")
@@ -31,7 +31,7 @@ def lstm_architecture(input_shape, n_classes, dropout_rate):
     return tf.keras.Model(inputs=inputs, outputs=out, name='LSTM_model')
 
 @gin.configurable
-def gru_architecture(input_shape, n_classes, dropout_rate):
+def gru_architecture(input_shape, n_classes, dropout_rate, units):
     """A basic GRU architecture
 
         Parameters:
@@ -43,14 +43,14 @@ def gru_architecture(input_shape, n_classes, dropout_rate):
             (model): tensorflow keras model with given dimensions
     """
     inputs = tf.keras.Input(input_shape)
-    out = custom_layers.basic_GRU_layer(inputs=inputs, units=250, return_sequences=True)
-    out = custom_layers.basic_dense_layer(inputs=out, units=125)
+    out = custom_layers.basic_GRU_layer(inputs=inputs, units=units*2, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=units)
     out = tf.keras.layers.Dropout(dropout_rate)(out)
-    out = custom_layers.basic_GRU_layer(inputs=out, units=125, return_sequences=True)
-    out = custom_layers.basic_dense_layer(inputs=out, units=64)
+    out = custom_layers.basic_GRU_layer(inputs=out, units=units, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=units/2)
     out = tf.keras.layers.Dropout(dropout_rate)(out)
-    out = custom_layers.basic_GRU_layer(inputs=out, units=64, return_sequences=True)
-    out = custom_layers.basic_dense_layer(inputs=out, units=32)
+    out = custom_layers.basic_GRU_layer(inputs=out, units=units/2, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=units/4)
     out = tf.keras.layers.Dropout(dropout_rate)(out)
 
     out = custom_layers.basic_dense_layer(inputs=out, units=n_classes, activation='softmax')
@@ -58,7 +58,7 @@ def gru_architecture(input_shape, n_classes, dropout_rate):
     return tf.keras.Model(inputs=inputs, outputs=out, name='GRU_model')
 
 @gin.configurable
-def rnn_architecture(input_shape, n_classes, dropout_rate):
+def rnn_architecture(input_shape, n_classes, dropout_rate, units):
     """A basic RNN architecture
 
         Parameters:
@@ -70,14 +70,14 @@ def rnn_architecture(input_shape, n_classes, dropout_rate):
             (model): tensorflow keras model with given dimensions
     """
     inputs = tf.keras.Input(input_shape)
-    out = custom_layers.basic_RNN_layer(inputs=inputs, units=250, return_sequences=True)
-    out = custom_layers.basic_dense_layer(inputs=out, units=125)
+    out = custom_layers.basic_RNN_layer(inputs=inputs, units=units*2, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=units)
     out = tf.keras.layers.Dropout(dropout_rate)(out)
-    out = custom_layers.basic_RNN_layer(inputs=out, units=125, return_sequences=True)
-    out = custom_layers.basic_dense_layer(inputs=out, units=64)
+    out = custom_layers.basic_RNN_layer(inputs=out, units=units, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=units/2)
     out = tf.keras.layers.Dropout(dropout_rate)(out)
-    out = custom_layers.basic_RNN_layer(inputs=out, units=64, return_sequences=True)
-    out = custom_layers.basic_dense_layer(inputs=out, units=32)
+    out = custom_layers.basic_RNN_layer(inputs=out, units=units/2, return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=units/4)
     out = tf.keras.layers.Dropout(dropout_rate)(out)
 
     out = custom_layers.basic_dense_layer(inputs=out, units=n_classes, activation='softmax')
