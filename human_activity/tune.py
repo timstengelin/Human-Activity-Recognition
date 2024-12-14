@@ -100,6 +100,6 @@ def tune(run_paths):
             for _ in trainer.train():
                 continue
 
-    wandb.agent(sweep_id, function=func, count=20)
+    wandb.agent(sweep_id, function=func, count=100)
 
     wandb.finish()
