@@ -11,7 +11,7 @@ wandb.login(key="8478ddb0f2c0978283abcb1e18db08bebd904d3f")
 
 def tune(run_paths):
     sweep_config = {
-        'method': 'bayes'
+        'method': 'random'
     }
     metric = {
         'name': 'acc_val',
@@ -33,6 +33,18 @@ def tune(run_paths):
         },
         'model': {
             'values': ["LSTM_model", "GRU_model", "RNN_model"]
+        },
+        'window_size': {
+            'min': 150,
+            'max': 500
+        },
+        'window_shift': {
+            'min': 0,
+            'max': 150
+        },
+        'batch_size': {
+            'min': 8,
+            'max': 128
         }
     }
     sweep_config['parameters'] = parameters_dict
@@ -45,7 +57,10 @@ def tune(run_paths):
         config = {
             'steps': 50,
             'lr_rate': 0.01,
-            'drop_rate': 0.25
+            'drop_rate': 0.25,
+            'window_size': 250,
+            'window_shift': 125,
+            'batch_size': 64
         }
         if config:
             run = wandb.init(config=config, magic=True)
@@ -53,7 +68,10 @@ def tune(run_paths):
             config = wandb.config
 
             # Model training code here ...
-            ds_train, ds_val, ds_test, ds_info = datasets.load()
+            ds_train, ds_val, ds_test, ds_info = datasets.load(window_size=config.window_size,
+                                                               window_shift=config.window_shift,
+                                                               batch_size=config.batch_size,
+                                                               tfrecord_files_exist=False)
 
             # get shape from actual dataset
             feature_shape = None
@@ -77,6 +95,6 @@ def tune(run_paths):
             for _ in trainer.train():
                 continue
 
-    wandb.agent(sweep_id, function=func, count=10)
+    wandb.agent(sweep_id, function=func, count=20)
 
     wandb.finish()
