@@ -20,8 +20,8 @@ def tune(run_paths):
     sweep_config['metric'] = metric
     parameters_dict = {
         'steps': {
-            'min': 100,
-            'max': 300
+            'min': 200,
+            'max': 2000
         },
         'lr_rate': {
             'min': 0.00001,
@@ -100,6 +100,6 @@ def tune(run_paths):
             for _ in trainer.train():
                 continue
 
-    wandb.agent(sweep_id, function=func, count=100)
+    wandb.agent(sweep_id, function=func, count=200)
 
     wandb.finish()
