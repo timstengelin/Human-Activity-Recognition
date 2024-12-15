@@ -1,54 +1,105 @@
 import logging
 import gin
 
-import ray
-from ray import tune
-
-from input_pipeline.datasets import load
-from models.architectures import vgg_like
 from train import Trainer
-from utils import utils_params, utils_misc
+import input_pipeline.datasets as datasets
+import models.architectures as architectures
+
+import wandb
+
+wandb.login(key="8478ddb0f2c0978283abcb1e18db08bebd904d3f")
+
+def tune(run_paths):
+    sweep_config = {
+        'method': 'random'
+    }
+    metric = {
+        'name': 'acc_val',
+        'goal': 'maximize'
+    }
+    sweep_config['metric'] = metric
+    parameters_dict = {
+        'steps': {
+            'min': 200,
+            'max': 2000
+        },
+        'lr_rate': {
+            'min': 0.00001,
+            'max': 0.001
+        },
+        'drop_rate': {
+            'min': 0.1,
+            'max': 0.5
+        },
+        'model': {
+            'values': ["LSTM_model", "GRU_model", "RNN_model"]
+        },
+        'window_size': {
+            'min': 150,
+            'max': 500
+        },
+        'window_shift': {
+            'min': 0,
+            'max': 150
+        },
+        'batch_size': {
+            'min': 8,
+            'max': 128
+        },
+        'units': {
+            'min': 64,
+            'max': 256
+        }
+    }
+    sweep_config['parameters'] = parameters_dict
+
+    sweep_id = wandb.sweep(sweep=sweep_config, project="iss-dl15")
 
 
-def train_func(config):
-    # Hyperparameters
-    bindings = []
-    for key, value in config.items():
-        bindings.append(f'{key}={value}')
 
-    # generate folder structures
-    run_paths = utils_params.gen_run_folder(','.join(bindings))
+    def func():
+        config = {
+            'steps': 50,
+            'lr_rate': 0.01,
+            'drop_rate': 0.25,
+            'window_size': 250,
+            'window_shift': 125,
+            'batch_size': 64,
+            'units': 64
+        }
+        if config:
+            run = wandb.init(config=config)
 
-    # set loggers
-    utils_misc.set_loggers(run_paths['path_logs_train'], logging.INFO)
+            config = wandb.config
 
-    # gin-config
-    gin.parse_config_files_and_bindings(['/absolute/path/to/configs/config.gin'], bindings) # change path to absolute path of config file
-    utils_params.save_config(run_paths['path_gin'], gin.config_str())
+            # Model training code here ...
+            ds_train, ds_val, ds_test, ds_info = datasets.load(window_size=config.window_size,
+                                                               window_shift=config.window_shift,
+                                                               batch_size=config.batch_size,
+                                                               tfrecord_files_exist=False)
 
-    # setup pipeline
-    ds_train, ds_val, ds_test, ds_info = load()
+            # get shape from actual dataset
+            feature_shape = None
+            label_shape = None
+            for data, label in ds_train:
+                feature_shape = data.shape[1:]
+                label_shape = label.shape[1:]
+                break
 
-    # model
-    model = vgg_like(input_shape=ds_info.features["image"].shape, n_classes=ds_info.features["label"].num_classes)
+            if config.model == "LSTM_model":
+                model = architectures.lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1],
+                                                        dropout_rate=config.drop_rate, units=int(config.units))
+            elif config.model == "GRU_model":
+                model = architectures.gru_architecture(input_shape=feature_shape, n_classes=label_shape[-1],
+                                                       dropout_rate=config.drop_rate, units=int(config.units))
+            elif config.model == "RNN_model":
+                model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1],
+                                                       dropout_rate=config.drop_rate, units=int(config.units))
+            trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val,
+                              run_paths=run_paths, total_steps=config.steps, tuning=True, learning_rate=config.lr_rate)
+            for _ in trainer.train():
+                continue
 
-    trainer = Trainer(model, ds_train, ds_val, ds_info, run_paths)
-    for val_accuracy in trainer.train():
-        tune.report(val_accuracy=val_accuracy)
+    wandb.agent(sweep_id, function=func, count=200)
 
-
-ray.init(num_cpus=10, num_gpus=1)
-analysis = tune.run(
-    train_func, num_samples=2, resources_per_trial={"cpu": 10, "gpu": 1},
-    config={
-        "Trainer.total_steps": tune.grid_search([1e4]),
-        "vgg_like.base_filters": tune.choice([8, 16]),
-        "vgg_like.n_blocks": tune.choice([2, 3, 4, 5]),
-        "vgg_like.dense_units": tune.choice([32, 64]),
-        "vgg_like.dropout_rate": tune.uniform(0, 0.9),
-    })
-
-print("Best config: ", analysis.get_best_config(metric="val_accuracy", mode="max"))
-
-# Get a dataframe for analyzing trial results.
-df = analysis.dataframe()
+    wandb.finish()

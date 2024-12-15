@@ -1,7 +1,10 @@
 # Architectures and layers
-lstm_architecture.dropout_rate = 0.25
-gru_architecture.dropout_rate = 0.25
-rnn_architecture.dropout_rate = 0.25
+lstm_architecture.dropout_rate = 0.15
+lstm_architecture.units = 64
+gru_architecture.dropout_rate = 0.15
+gru_architecture.units = 64
+rnn_architecture.dropout_rate = 0.15
+rnn_architecture.units = 64
 
 # Training
 Trainer.total_steps = 1e3
@@ -10,8 +13,8 @@ Trainer.ckpt_interval = 1e2
 Trainer.learning_rate = 1e-4
 
 # Folder/Path generation
-gen_run_folder.path_model_id = 'LSTM_model'
-gen_run_folder.new_model = False
+gen_run_folder.path_model_id = 'GRU_model'
+gen_run_folder.new_model = True
 
 # Input pipeline
 load.name = 'hapt'
