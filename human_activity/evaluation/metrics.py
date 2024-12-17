@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 class ConfusionMatrix(tf.keras.metrics.Metric):
 
@@ -32,13 +33,18 @@ class Categorical_Accuracy(tf.keras.metrics.Metric):
 
     def update_state(self, labels, predictions, *args, **kwargs):
         # get highest rated class
-        labels = tf.argmax(labels, axis=-1)
-        predictions = tf.argmax(predictions, axis=-1)
+        labels = tf.argmax(labels, axis=-1).numpy().flatten()
+        predictions = tf.argmax(predictions, axis=-1).numpy().flatten()
+
+        # delete the samples without classification
+        index = np.argwhere(labels == 0)
+        label_clean = np.delete(labels, index, axis=0)
+        predictions_clean = np.delete(predictions, index, axis=0)
 
         # compare true and predicted
-        acc = tf.cast(tf.equal(labels, predictions), dtype=tf.float32)
+        acc = tf.cast(tf.equal(label_clean, predictions_clean), dtype=tf.float32)
 
-        # reduce to one value over all timesteps and entries
+        # reduce to one value entry
         self.accuracy = tf.reduce_mean(acc)
 
     def result(self):
