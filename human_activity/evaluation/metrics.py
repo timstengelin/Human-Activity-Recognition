@@ -34,17 +34,12 @@ class Categorical_Accuracy(tf.keras.metrics.Metric):
 
     def update_state(self, labels, predictions, *args, **kwargs):
         # get highest rated class
-        # labels = tf.argmax(labels, axis=-1).numpy().flatten()
-        # predictions = tf.argmax(predictions, axis=-1).numpy().flatten()
         labels = tf.reshape(tf.argmax(tf.cast(labels, dtype=tf.float32), axis=-1), [-1])
         predictions = tf.reshape(tf.argmax(tf.cast(predictions, dtype=tf.float32), axis=-1), [-1])
 
         # delete the samples without classification
-        # index = np.argwhere(labels == 0)
         index = tf.where(labels != 0)
-        #label_clean = np.delete(labels, index, axis=0)
         label_clean = tf.gather(labels, index)
-        # predictions_clean = np.delete(predictions, index, axis=0)
         prediction_clean = tf.gather(predictions, index)
 
         # compare true and predicted
