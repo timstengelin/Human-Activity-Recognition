@@ -30,23 +30,30 @@ class Categorical_Accuracy(tf.keras.metrics.Metric):
         super(Categorical_Accuracy, self).__init__(name=name, **kwargs)
         # initialize parameters
         self.accuracy = self.add_weight(name='categorical_accuracy', initializer='zeros')
+        self.count = self.add_weight(name='count', initializer='zeros')
 
     def update_state(self, labels, predictions, *args, **kwargs):
         # get highest rated class
-        labels = tf.argmax(labels, axis=-1).numpy().flatten()
-        predictions = tf.argmax(predictions, axis=-1).numpy().flatten()
+        # labels = tf.argmax(labels, axis=-1).numpy().flatten()
+        # predictions = tf.argmax(predictions, axis=-1).numpy().flatten()
+        labels = tf.reshape(tf.argmax(tf.cast(labels, dtype=tf.float32), axis=-1), [-1])
+        predictions = tf.reshape(tf.argmax(tf.cast(predictions, dtype=tf.float32), axis=-1), [-1])
 
         # delete the samples without classification
-        index = np.argwhere(labels == 0)
-        label_clean = np.delete(labels, index, axis=0)
-        predictions_clean = np.delete(predictions, index, axis=0)
+        # index = np.argwhere(labels == 0)
+        index = tf.where(labels != 0)
+        #label_clean = np.delete(labels, index, axis=0)
+        label_clean = tf.gather(labels, index)
+        # predictions_clean = np.delete(predictions, index, axis=0)
+        prediction_clean = tf.gather(predictions, index)
 
         # compare true and predicted
-        acc = tf.cast(tf.equal(label_clean, predictions_clean), dtype=tf.float32)
+        acc = tf.cast(tf.equal(label_clean, prediction_clean), dtype=tf.float32)
 
         # reduce to one value entry
-        self.accuracy = tf.reduce_mean(acc)
+        self.accuracy.assign_add(tf.reduce_mean(acc))
+        self.count.assign_add(1)
 
     def result(self):
         # return parameters
-        return self.accuracy
+        return self.accuracy/self.count
