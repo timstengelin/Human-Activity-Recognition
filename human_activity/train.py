@@ -2,6 +2,7 @@ import gin
 import tensorflow as tf
 import logging
 import wandb
+import evaluation.metrics as metrics
 
 @gin.configurable
 class Trainer(object):
@@ -13,10 +14,12 @@ class Trainer(object):
 
         # Metrics
         self.train_loss = tf.keras.metrics.Mean(name='train_loss')
-        self.train_accuracy = tf.keras.metrics.CategoricalAccuracy(name='train_accuracy')
+        # self.train_accuracy = tf.keras.metrics.CategoricalAccuracy(name='train_accuracy')
+        self.train_accuracy = metrics.Categorical_Accuracy()
 
         self.val_loss = tf.keras.metrics.Mean(name='val_loss')
-        self.val_accuracy = tf.keras.metrics.CategoricalAccuracy(name='val_accuracy')
+        # self.val_accuracy = tf.keras.metrics.CategoricalAccuracy(name='val_accuracy')
+        self.val_accuracy = metrics.Categorical_Accuracy()
 
         # attributes
         self.model = model
