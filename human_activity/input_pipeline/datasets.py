@@ -83,7 +83,8 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
     num_train_samples = sum(1 for _ in ds_train)                                                                                # complete shuffle
     ds_train = ds_train.shuffle(num_train_samples).batch(batch_size, drop_remainder=True).repeat().prefetch(tf.data.AUTOTUNE)   #
     # Batch the validation and test datasets
-    ds_val = ds_val.batch(batch_size).prefetch(tf.data.AUTOTUNE)
+    num_val_samples = sum(1 for _ in ds_val)
+    ds_val = ds_val.batch(num_val_samples).prefetch(tf.data.AUTOTUNE)
     num_test_samples = sum(1 for _ in ds_test)                              # all test data processed in single batch
     ds_test = ds_test.batch(num_test_samples).prefetch(tf.data.AUTOTUNE)    #
 
