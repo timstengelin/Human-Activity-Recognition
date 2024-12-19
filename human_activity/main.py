@@ -4,7 +4,7 @@ from absl import app, flags
 
 from train import Trainer
 from evaluation.eval import evaluate
-from evaluation.visualization import visulization
+from evaluation.visualization import visualization
 from input_pipeline import datasets
 from utils import utils_params, utils_misc
 import models.architectures as architectures
@@ -67,7 +67,7 @@ def main(argv):
                  ds_test=ds_test,
                  run_paths=run_paths,
                  n_classes=label_shape[-1])
-        visulization(model=model,
+        visualization(model=model,
                      run_paths=run_paths,
                      dataset=ds_test)
 
