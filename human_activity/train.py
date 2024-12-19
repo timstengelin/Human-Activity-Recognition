@@ -3,13 +3,27 @@ import tensorflow as tf
 import logging
 import wandb
 import evaluation.metrics as metrics
+import numpy as np
+
+weight=np.array([1,1,1,1,1,1,5,5,5,5,5,5])
+def crossentropy(labels, predictions, weights, *args, **kwargs):
+    # scale predictions so that the class probas of each sample sum to 1
+    predictions /= tf.keras.backend.sum(predictions, axis=-1, keepdims=True)
+    # clip to prevent NaN's and Inf's
+    predictions = tf.keras.backend.clip(predictions, tf.keras.backend.epsilon(), 1 - tf.keras.backend.epsilon())
+    # calc
+    loss = labels * tf.keras.backend.log(predictions) * weights
+    loss = -tf.keras.backend.sum(loss, -1)
+
+    return loss
 
 @gin.configurable
 class Trainer(object):
     def __init__(self, model, ds_train, ds_val, learning_rate, run_paths,
                  total_steps, log_interval, ckpt_interval, tuning=False):
         # Loss objective
-        self.loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+        # self.loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+        # self.loss_object = crossentropy()
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
         # Metrics
@@ -57,7 +71,8 @@ class Trainer(object):
             # training=True is only needed if there are layers with different
             # behavior during training versus inference (e.g. Dropout).
             predictions = self.model(data, training=True)
-            loss = self.loss_object(labels, predictions)
+            # loss = self.loss_object(labels, predictions, sample_weight=sample_weight)
+            loss = crossentropy(labels, predictions, weight)
         gradients = tape.gradient(loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
 
@@ -78,7 +93,8 @@ class Trainer(object):
         # training=False is only needed if there are layers with different
         # behavior during training versus inference (e.g. Dropout).
         predictions = self.model(data, training=False)
-        t_loss = self.loss_object(labels, predictions)
+        # t_loss = self.loss_object(labels, predictions, sample_weight=sample_weight)
+        t_loss = crossentropy(labels, predictions, weight)
 
         self.val_loss(t_loss)
         self.val_accuracy(labels, predictions)
