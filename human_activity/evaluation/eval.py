@@ -55,5 +55,4 @@ def evaluate(model, ds_test, run_paths, n_classes):
     plt.figure(figsize=(10, 7))
     plt.title("Confusion matrix")
     sn.heatmap(df_cm, annot=True)
-    # plt.show()
     plt.savefig(os.path.join(run_paths['path_board_val'], 'confusion_matrix.png'))
