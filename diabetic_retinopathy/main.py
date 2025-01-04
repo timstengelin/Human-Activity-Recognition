@@ -27,7 +27,6 @@ def main(argv):
 
     # call of data pipeline to retrieve train, validation and test dataset
     ds_train, ds_val, ds_test = datasets.load()
-    ds_info = 0 # Helper
 
     '''
     # HELPER: Printing of shapes
@@ -37,7 +36,7 @@ def main(argv):
     '''
 
     # define model
-    model_name = 'LeNet' # HELPER
+    model_name = 'LeNet'
     if model_name == 'LeNet':
         model = le_net(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'AlexNet':
@@ -50,13 +49,12 @@ def main(argv):
 
 
     if FLAGS.train:
-        trainer = Trainer(model, ds_train, ds_val, ds_info, run_paths)
+        trainer = Trainer(model, ds_train, ds_val, run_paths)
         for _ in trainer.train():
             continue
     else:
         evaluate(model,
                  ds_test,
-                 ds_info,
                  run_paths)
 
 if __name__ == "__main__":
