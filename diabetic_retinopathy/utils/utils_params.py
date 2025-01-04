@@ -1,19 +1,22 @@
 import os
 import datetime
+import gin
 
-
-def gen_run_folder(path_model_id=''):
+@gin.configurable
+def gen_run_folder(path_model_id, new_model):
     run_paths = dict()
 
-    if not os.path.isdir(path_model_id):
-        path_model_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, 'experiments'))
-        date_creation = datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S-%f')
+    path_model_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, 'experiments'))
+
+    date_creation = datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S-%f')
+
+    if path_model_id == '':
         run_id = 'run_' + date_creation
-        if path_model_id:
-            run_id += '_' + path_model_id
         run_paths['path_model_id'] = os.path.join(path_model_root, run_id)
     else:
-        run_paths['path_model_id'] = path_model_id
+        if new_model and os.path.isdir(os.path.join(path_model_root, path_model_id)):
+            path_model_id = path_model_id + "_" + date_creation
+        run_paths['path_model_id'] = os.path.join(path_model_root, path_model_id)
 
     run_paths['path_logs_train'] = os.path.join(run_paths['path_model_id'], 'logs', 'run.log')
     #run_paths['path_logs_eval'] = os.path.join(run_paths['path_model_id'], 'logs', 'eval', 'run.log')

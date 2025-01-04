@@ -4,17 +4,23 @@ mobilenet_v2.alpha = 1.0 # Width multiplier for scaling the number of filters in
 # Layers
 
 # Training
-Trainer.total_steps = 1e5
+Trainer.total_steps = 10000
 Trainer.log_interval = 1e1
-Trainer.ckpt_interval = 1e4
+Trainer.ckpt_interval = 1e3
 Trainer.learning_rate = 1e-4
+
+# Folder/Path generation
+gen_run_folder.path_model_id = 'le_net_TEST2' # Specifies the name of the experiment
+gen_run_folder.new_model = True # Determines whether a new model is to be trained
+    # True := A new model is trained from scratch
+    # False := A model from an existing experiment is trained further
 
 # Input pipeline
 load.img_dir = '/misc/home/data/IDRID_dataset/images'
 #load.img_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/images' # For local execution on Tim's PC
 load.csv_dir = '/misc/home/data/IDRID_dataset/labels'
 #load.csv_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/labels' # For local execution on Tim's PC
-load.load_record = False # If False, TFRecord files are created
+load.load_record = True # If False, TFRecord files are created
 load.resampling = True
 load.train_val_split = 0.8
 load.caching = True

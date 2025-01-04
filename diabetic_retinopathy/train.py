@@ -34,7 +34,7 @@ class Trainer(object):
         self.ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=self.optimizer, net=self.model)
         self.ckpt_manager = tf.train.CheckpointManager(checkpoint=self.ckpt,
                                                        directory=self.run_paths["path_ckpts_train"],
-                                                       max_to_keep=10)
+                                                       max_to_keep=3)
 
     @tf.function
     def train_step(self, images, labels):
