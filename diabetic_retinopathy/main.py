@@ -6,7 +6,7 @@ from train import Trainer
 from evaluation.eval import evaluate
 from input_pipeline import datasets
 from utils import utils_params, utils_misc
-from models.architectures import le_net, alex_net, vgg16, mobilenet_v2
+from models.architectures import *
 
 FLAGS = flags.FLAGS
 flags.DEFINE_boolean('train', True, 'Specify whether to train or evaluate a model.')
@@ -28,15 +28,8 @@ def main(argv):
     # call of data pipeline to retrieve train, validation and test dataset
     ds_train, ds_val, ds_test = datasets.load()
 
-    '''
-    # HELPER: Printing of shapes
-    for idx, (data, labels) in enumerate(ds_train):
-        print(data.shape, labels.shape)
-        break
-    '''
-
     # define model
-    model_name = 'LeNet'
+    model_name = 'MobileNetV2'
     if model_name == 'LeNet':
         model = le_net(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'MobileNetV2':
@@ -45,6 +38,10 @@ def main(argv):
         model = alex_net(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'VGG16':
         model = vgg16(input_shape=(256, 256, 3), n_classes=2)
+    elif model_name == 'MobileNetV2_pretrained':
+        model = mobilenet_v2_pretrained(input_shape=(256, 256, 3), n_classes=2)
+    elif model_name == 'DenseNet201_pretrained':
+        model = densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2)
     model.summary()
 
 

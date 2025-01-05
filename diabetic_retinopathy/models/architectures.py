@@ -161,3 +161,81 @@ def mobilenet_v2(input_shape, n_classes, alpha=1.0):
     outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobilenet_v2')
+
+
+@gin.configurable
+def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate):
+    '''
+    Defines a pretrained MobileNetV2 architecture
+
+    Args:
+        input_shape (tuple): Shape of the input tensor (height, width, channels)
+        n_classes (int): Number of output classes
+        trainable_rate (float): proportion of trainable parameters in the feature extraction module
+
+    Returns:
+        (tf.keras.Model): MobileNetV2 model
+    '''
+
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
+
+    # Preprocess input data
+    prep_inputs = tf.keras.applications.mobilenet_v2.preprocess_input(inputs)
+
+    # Build the MobileNetV2 model with transfer learning
+    base_model = tf.keras.applications.MobileNetV2(include_top=False, weights='imagenet', input_shape=input_shape,
+                                                   pooling=None)
+
+    # Fine tune from this layer onwards
+    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
+    # Freeze all the layers before the 'fine_tune_at' layer
+    for layer in base_model.layers[:fine_tune_at]:
+        layer.trainable = False
+
+    x = base_model(prep_inputs)
+
+    # Global average pooling and dense output
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobile_net_v2_pretrained')
+
+
+@gin.configurable
+def densenet201_pretrained(input_shape, n_classes, trainable_rate):
+    '''
+    Defines a pretrained DenseNet201 architecture
+
+    Args:
+        input_shape (tuple): Shape of the input tensor (height, width, channels)
+        n_classes (int): Number of output classes
+        trainable_rate (float): proportion of trainable parameters in the feature extraction module
+
+    Returns:
+        (tf.keras.Model): DenseNet201 model
+    '''
+
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
+
+    # Preprocess input data
+    prep_inputs = tf.keras.applications.densenet.preprocess_input(inputs)
+
+    # Build the DenseNet201 model with transfer learning
+    base_model = tf.keras.applications.DenseNet201(include_top=False, weights='imagenet', input_shape=input_shape,
+                                                   pooling=None)
+
+    # Fine tune from this layer onwards
+    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
+    # Freeze all the layers before the 'fine_tune_at' layer
+    for layer in base_model.layers[:fine_tune_at]:
+        layer.trainable = False
+
+    x = base_model(prep_inputs)
+
+    # Global average pooling and dense output
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='densenet201_pretrained')
