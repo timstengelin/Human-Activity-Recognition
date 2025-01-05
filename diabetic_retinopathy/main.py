@@ -39,12 +39,12 @@ def main(argv):
     model_name = 'LeNet'
     if model_name == 'LeNet':
         model = le_net(input_shape=(256, 256, 3), n_classes=2)
+    elif model_name == 'MobileNetV2':
+        model = mobilenet_v2(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'AlexNet':
         model = alex_net(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'VGG16':
         model = vgg16(input_shape=(256, 256, 3), n_classes=2)
-    elif model_name == 'MobileNetV2':
-        model = mobilenet_v2(input_shape=(256, 256, 3), n_classes=2)
     model.summary()
 
 
