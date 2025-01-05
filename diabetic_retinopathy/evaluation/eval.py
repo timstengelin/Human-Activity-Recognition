@@ -16,7 +16,7 @@ def evaluate(model, ds_test, run_paths):
     ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=tf.keras.optimizers.Adam(), net=model)
     ckpt_manager = tf.train.CheckpointManager(checkpoint=ckpt,
                                               directory=run_paths["path_ckpts_train"],
-                                              max_to_keep=3)
+                                              max_to_keep=1)
     ckpt.restore(ckpt_manager.latest_checkpoint).expect_partial()
         # .expect_partial() to suppress warnings about unused keys at exit time
     step = int(ckpt.step.numpy())
