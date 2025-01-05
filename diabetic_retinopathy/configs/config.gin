@@ -10,7 +10,7 @@ Trainer.ckpt_interval = 1e3
 Trainer.learning_rate = 1e-4
 
 # Folder/Path generation
-gen_run_folder.path_model_id = 'le_net_TEST2' # Specifies the name of the experiment
+gen_run_folder.path_model_id = 'le_net' # Specifies the name of the experiment
 gen_run_folder.new_model = True # Determines whether a new model is to be trained
     # True := A new model is trained from scratch
     # False := A model from an existing experiment is trained further
