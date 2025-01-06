@@ -3,71 +3,52 @@ import tensorflow as tf
 
 
 @gin.configurable
-def vgg_block(inputs, filters, kernel_size, n_conv_layers):
-    """
-    A single VGG block consisting of multiple convolutional layers, followed by a max-pooling layer
+def bottleneck_block(inputs, filters, expansion_factor, stride, repeats, alpha):
+    '''
+    Defines a stack of bottleneck blocks
 
-    Parameters:
-        inputs (Tensor): input of the VGG block
-        filters (int): number of filters used for the convolutional layers
-        kernel_size (tuple: 2): kernel size used for the convolutional layers
-        n_conv_layers (int): number of convolutional layers in the block
+    Args:
+        inputs (Tensor): Input tensor
+        filters (int): Number of output filters
+        expansion_factor (int): Expansion factor for the input channels
+        stride (int): Stride for the first depthwise convolution
+        repeats (int): Number of times the block should be repeated
+        alpha (float): Width multiplier to control the number of filters
 
     Returns:
-        (Tensor): output of the VGG block
-    """
+        Tensor: Output tensor after applying the bottleneck blocks
+    '''
+    def round_filters(filters, alpha):
+        return max(8, int(filters * alpha + 0.5) // 8 * 8)
+
+    filters = round_filters(filters, alpha)
     x = inputs
-    for _ in range(n_conv_layers):
-        x = tf.keras.layers.Conv2D(filters, kernel_size, padding='same', activation=tf.nn.relu)(x)
-    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    for i in range(repeats):
+        if i == 0:
+            x = bottleneck(x, filters, expansion_factor, stride)
+        else:
+            x = bottleneck(x, filters, expansion_factor, 1)
 
     return x
 
 
 @gin.configurable
-def alex_net_block(inputs, filters, kernel_size, strides, padding, n_conv_layers=1):
+def bottleneck(inputs, filters, expansion_factor, stride):
     '''
-    A single VGG block consisting of multiple convolutional layers, followed by a max-pooling layer
-
-    Parameters:
-        inputs (Tensor): input of the AlexNet block
-        filters (int): number of filters used for the convolutional layers
-        kernel_size (tuple: 2): kernel size used for the convolutional layers
-        stride (int): stride size for the convolution
-        padding (string): padding type, 'valid' or 'same'
-        n_conv_layers (int): number of convolutional layers in the block, default is 1
-
-    Returns:
-        (Tensor): output of the VGG block
-    '''
-
-    x = inputs
-    for _ in range(n_conv_layers):
-        x = tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding=padding, activation=tf.nn.relu)(x)
-        strides = 1  # Subsequent convolutions in the block use stride of 1
-    x = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding='valid')(x)
-
-    return x
-
-
-@gin.configurable
-def inverted_residual_block(inputs, filters, expansion_factor, stride, alpha=1.0):
-    """
-    Defines an inverted residual block with optional expansion
+    Defines a single bottleneck block with expansion
 
     Args:
         inputs (Tensor): Input tensor
         filters (int): Number of output filters
         expansion_factor (int): Expansion factor for the input channels
         stride (int): Stride for the depthwise convolution
-        alpha (float): Width multiplier for scaling the number of filters
 
     Returns:
-        Tensor: Output tensor after applying the inverted residual block
-    """
+        Tensor: Output tensor after applying the bottleneck block
+    '''
     input_channels = inputs.shape[-1]
     expanded_channels = input_channels * expansion_factor
-    filters = int(filters * alpha)
 
     x = inputs
 
@@ -81,6 +62,78 @@ def inverted_residual_block(inputs, filters, expansion_factor, stride, alpha=1.0
     x = tf.keras.layers.DepthwiseConv2D(kernel_size=3, strides=stride, padding='same', use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU(6.0)(x)
+
+    # Project
+    x = tf.keras.layers.Conv2D(filters, kernel_size=1, strides=1, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+
+    # Skip connection
+    if stride == 1 and input_channels == filters:
+        x = tf.keras.layers.Add()([inputs, x])
+
+    return x
+
+
+@gin.configurable
+def mbconv_block(inputs, filters, expansion_factor, stride, repeats, width_coefficient):
+    '''
+    Defines a stack of MBConv blocks
+
+    Args:
+        inputs (Tensor): Input tensor
+        filters (int): Number of output filters
+        expansion_factor (int): Expansion factor for the input channels
+        stride (int): Stride for the first depthwise convolution
+        repeats (int): Number of times the block should be repeated
+        width_coefficient (float): Width scaling factor
+
+    Returns:
+        Tensor: Output tensor after applying the MBConv blocks
+    '''
+    def round_filters(filters, width_coefficient):
+        return max(8, int(filters * width_coefficient + 0.5) // 8 * 8)
+
+    filters = round_filters(filters, width_coefficient)
+    x = inputs
+
+    for i in range(repeats):
+        if i == 0:
+            x = mbconv(x, filters, expansion_factor, stride if i == 0 else 1)
+        else:
+            x = mbconv(x, filters, expansion_factor, 1)
+
+    return x
+
+
+@gin.configurable
+def mbconv(inputs, filters, expansion_factor, stride):
+    '''
+    Defines a single MBConv block with expansion
+
+    Args:
+        inputs (Tensor): Input tensor
+        filters (int): Number of output filters
+        expansion_factor (int): Expansion factor for the input channels
+        stride (int): Stride for the depthwise convolution
+
+    Returns:
+        Tensor: Output tensor after applying the MBConv block
+    '''
+    input_channels = inputs.shape[-1]
+    expanded_channels = input_channels * expansion_factor
+
+    x = inputs
+
+    # Expand
+    if expansion_factor != 1:
+        x = tf.keras.layers.Conv2D(expanded_channels, kernel_size=1, strides=1, padding='same', use_bias=False)(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.ReLU()(x)
+
+    # Depthwise convolution
+    x = tf.keras.layers.DepthwiseConv2D(kernel_size=3, strides=stride, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
 
     # Project
     x = tf.keras.layers.Conv2D(filters, kernel_size=1, strides=1, padding='same', use_bias=False)(x)

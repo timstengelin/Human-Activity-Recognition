@@ -8,6 +8,8 @@ from input_pipeline import datasets
 from utils import utils_params, utils_misc
 from models.architectures import *
 
+import tune_wandb as tuning
+
 FLAGS = flags.FLAGS
 flags.DEFINE_boolean('train', True, 'Specify whether to train or evaluate a model.')
 
@@ -34,21 +36,21 @@ def main(argv):
         model = le_net(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'MobileNetV2':
         model = mobilenet_v2(input_shape=(256, 256, 3), n_classes=2)
-    elif model_name == 'AlexNet':
-        model = alex_net(input_shape=(256, 256, 3), n_classes=2)
-    elif model_name == 'VGG16':
-        model = vgg16(input_shape=(256, 256, 3), n_classes=2)
+    elif model_name == 'EfficientNetB0':
+        model = efficientnet_b0(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'MobileNetV2_pretrained':
         model = mobilenet_v2_pretrained(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'DenseNet201_pretrained':
         model = densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2)
     model.summary()
 
-
-    if FLAGS.train:
+    tune = False
+    if FLAGS.train and not tune:
         trainer = Trainer(model, ds_train, ds_val, run_paths)
         for _ in trainer.train():
             continue
+    elif FLAGS.train and tune:
+        tuning.tune(run_paths)
     else:
         evaluate(model,
                  ds_test,
