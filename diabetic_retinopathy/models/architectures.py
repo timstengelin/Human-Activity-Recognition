@@ -141,7 +141,7 @@ def efficientnet_b0(input_shape, n_classes, width_coefficient=1.0, depth_coeffic
 
 
 @gin.configurable
-def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate):
+def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate, dropout_rate=0.2):
     '''
     Defines a pretrained MobileNetV2 architecture
 
@@ -149,6 +149,7 @@ def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate):
         input_shape (tuple): Shape of the input tensor (height, width, channels)
         n_classes (int): Number of output classes
         trainable_rate (float): proportion of trainable parameters in the feature extraction module
+        dropout_rate (float): Dropout rate for the top layer
 
     Returns:
         (tf.keras.Model): MobileNetV2 model
@@ -174,13 +175,14 @@ def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate):
 
     # Global average pooling and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
     outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobile_net_v2_pretrained')
 
 
 @gin.configurable
-def densenet201_pretrained(input_shape, n_classes, trainable_rate):
+def densenet201_pretrained(input_shape, n_classes, trainable_rate, dropout_rate=0.2):
     '''
     Defines a pretrained DenseNet201 architecture
 
@@ -188,6 +190,7 @@ def densenet201_pretrained(input_shape, n_classes, trainable_rate):
         input_shape (tuple): Shape of the input tensor (height, width, channels)
         n_classes (int): Number of output classes
         trainable_rate (float): proportion of trainable parameters in the feature extraction module
+        dropout_rate (float): Dropout rate for the top layer
 
     Returns:
         (tf.keras.Model): DenseNet201 model
@@ -213,6 +216,7 @@ def densenet201_pretrained(input_shape, n_classes, trainable_rate):
 
     # Global average pooling and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
     outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='densenet201_pretrained')
