@@ -141,7 +141,7 @@ def efficientnet_b0(input_shape, n_classes, width_coefficient=1.0, depth_coeffic
 
 
 @gin.configurable
-def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate, dropout_rate=0.2):
+def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
     '''
     Defines a pretrained MobileNetV2 architecture
 
@@ -182,7 +182,7 @@ def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate, dropout_rate
 
 
 @gin.configurable
-def densenet201_pretrained(input_shape, n_classes, trainable_rate, dropout_rate=0.2):
+def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
     '''
     Defines a pretrained DenseNet201 architecture
 

@@ -1,13 +1,21 @@
 # ---------- ARCHITECTURES ----------
 
 # MobileNetV2
-mobilenet_v2.alpha = 1.0 # Width multiplier for scaling the number of filters in each layer
+mobilenet_v2.alpha = 1.0
+mobilenet_v2.dropout_rate=0.2
+
+# EfficientNetB0
+efficientnet_b0.width_coefficient=1.0
+efficientnet_b0.depth_coefficient=1.0
+efficientnet_b0.dropout_rate=0.2
 
 # Pretrained MobileNetV2
 mobilenet_v2_pretrained.trainable_rate = 0.2
+mobilenet_v2_pretrained.dropout_rate = 0.2
 
 # Pretrained DenseNet201
 densenet201_pretrained.trainable_rate = 0.2
+densenet201_pretrained.dropout_rate = 0.2
 
 
 # ---------- LAYERS ----------
@@ -18,13 +26,13 @@ densenet201_pretrained.trainable_rate = 0.2
 Trainer.total_steps = 10000
 Trainer.log_interval = 1e2
 Trainer.ckpt_interval = 1e3
-Trainer.learning_rate = 1e-3
+Trainer.learning_rate = 1e-5
 
 
 # ---------- FOLDER/PATH GENERATION ----------
 
-gen_run_folder.path_model_id = 'mobilenet_V2' # Specifies the name of the experiment
-gen_run_folder.new_model = True # Determines whether a new model is to be trained
+gen_run_folder.path_model_id = 'densenet201_pretrained_lr1e-5' # Specifies the name of the experiment
+gen_run_folder.new_model = False # Determines whether a new model is to be trained
     # True := A new model is trained from scratch
     # False := A model from an existing experiment is trained further
 
