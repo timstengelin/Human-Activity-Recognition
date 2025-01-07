@@ -1,17 +1,16 @@
 import gin
 import logging
-from absl import app, flags
 
+from absl import app, flags
 from train import Trainer
 from evaluation.eval import evaluate
 from input_pipeline import datasets
 from utils import utils_params, utils_misc
 from models.architectures import *
-
-import tune_wandb as tuning
+from tune_wandb import *
 
 FLAGS = flags.FLAGS
-flags.DEFINE_boolean('train', True, 'Specify whether to train or evaluate a model.')
+flags.DEFINE_string('mode', 'tune', 'Specifies wheater to train, tune or evaluate a model')
 
 def main(argv):
 
@@ -31,7 +30,7 @@ def main(argv):
     ds_train, ds_val, ds_test = datasets.load()
 
     # define model
-    model_name = 'MobileNetV2'
+    model_name = 'MobileNetV2_pretrained'
     if model_name == 'LeNet':
         model = le_net(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'MobileNetV2':
@@ -44,13 +43,12 @@ def main(argv):
         model = densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2)
     model.summary()
 
-    tune = False
-    if FLAGS.train and not tune:
+    if FLAGS.mode == 'train':
         trainer = Trainer(model, ds_train, ds_val, run_paths)
         for _ in trainer.train():
             continue
-    elif FLAGS.train and tune:
-        tuning.tune(run_paths)
+    elif FLAGS.mode == 'tune':
+        tune(run_paths)
     else:
         evaluate(model,
                  ds_test,
