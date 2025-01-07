@@ -13,6 +13,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('mode', 'tune', 'Specifies wheater to train, tune or evaluate a model')
 
 def main(argv):
+    model_name = 'MobileNetV2'
 
     # collect data from gin config file
     gin.parse_config_files_and_bindings(['configs/config.gin'], [])
@@ -30,7 +31,6 @@ def main(argv):
     ds_train, ds_val, ds_test = datasets.load()
 
     # define model
-    model_name = 'ResNet50_pretrained'
     if model_name == 'LeNet':
         model = le_net(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'MobileNetV2':
@@ -50,7 +50,7 @@ def main(argv):
         for _ in trainer.train():
             continue
     elif FLAGS.mode == 'tune':
-        tune(run_paths)
+        tune(run_paths, model_name)
     else:
         evaluate(model,
                  ds_test,
