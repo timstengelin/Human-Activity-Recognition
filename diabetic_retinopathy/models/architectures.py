@@ -1,7 +1,8 @@
 import gin
 import tensorflow as tf
 
-from models.layers import alex_net_block, vgg_block, inverted_residual_block
+from models.layers import *
+
 
 @gin.configurable
 def le_net(input_shape, n_classes):
@@ -37,87 +38,118 @@ def le_net(input_shape, n_classes):
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='lenet')
 
-@gin.configurable
-def alex_net(input_shape, n_classes):
-    '''
-    Defines the AlexNet architecture
-
-    Parameters:
-        input_shape (tuple: 3): input shape of the neural network
-        n_classes (int): number of classes, corresponding to the number of output neurons
-
-    Returns:
-        (tf.keras.Model): VGG16 model
-    '''
-
-    # Input layer
-    inputs = tf.keras.Input(shape=input_shape)
-
-    # Normalize input data
-    rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1. / 255.0)(inputs)
-
-    # AlexNet layers
-    x = alex_net_block(rescale, 96, (11, 11), strides=4, padding='valid')
-    x = alex_net_block(x, 256, (5, 5), strides=1, padding='same')
-    x = alex_net_block(x, 384, (3, 3), strides=1, padding='same', n_conv_layers=3)
-
-    # Flatten and dense layers
-    x = tf.keras.layers.Flatten()(x)
-    x = tf.keras.layers.Dense(4096, activation='relu')(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(4096, activation='relu')(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
-
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
-
-    return tf.keras.Model(inputs=inputs, outputs=outputs, name='alexnet')
-
 
 @gin.configurable
-def vgg16(input_shape, n_classes):
-    '''
-    Defines the VGG16 architecture
-
-    Parameters:
-        input_shape (tuple: 3): input shape of the neural network
-        n_classes (int): number of classes, corresponding to the number of output neurons
-
-    Returns:
-        (tf.keras.Model): VGG16 model
-    '''
-
-    inputs = tf.keras.Input(shape=input_shape)
-
-    # Normalize input data
-    rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1. / 255.0)(inputs)
-
-    # VGG blocks
-    x = vgg_block(rescale, filters=64, kernel_size=(3, 3), n_conv_layers=2)     # Block 1
-    x = vgg_block(x, filters=128, kernel_size=(3, 3), n_conv_layers=2)          # Block 2
-    x = vgg_block(x, filters=256, kernel_size=(3, 3), n_conv_layers=3)          # Block 3
-    x = vgg_block(x, filters=512, kernel_size=(3, 3), n_conv_layers=3)          # Block 4
-    x = vgg_block(x, filters=512, kernel_size=(3, 3), n_conv_layers=3)          # Block 5
-
-    # Classification head
-    x = tf.keras.layers.Flatten()(x)
-    x = tf.keras.layers.Dense(4096, activation='relu')(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(4096, activation='relu')(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
-    outputs = tf.keras.layers.Dense(units=n_classes, activation='softmax')(x)
-
-    return tf.keras.Model(inputs=inputs, outputs=outputs, name='vgg16')
-
-
-@gin.configurable
-def mobilenet_v2(input_shape, n_classes, alpha=1.0):
+def mobilenet_v2(input_shape, n_classes, alpha=1.0, dropout_rate=0.2):
     '''
     Defines the MobileNetV2 architecture
 
     Args:
         input_shape (tuple): Shape of the input tensor (height, width, channels)
         n_classes (int): Number of output classes
-        alpha (float): Width multiplier for scaling the number of filters in each layer
+        alpha (float): Width multiplier to control the number of filters
+        dropout_rate (float): Dropout rate for the top layer
+
+    Returns:
+        (tf.keras.Model): MobileNetV2 model
+    '''
+    def round_filters(filters, alpha):
+        return max(8, int(filters * alpha + 0.5) // 8 * 8)
+
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
+    x = tf.keras.layers.Rescaling(1.0 / 255.0)(inputs)
+
+    # Initial Conv2D layer
+    x = tf.keras.layers.Conv2D(round_filters(32, alpha), kernel_size=3, strides=2, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU(6.0)(x)
+
+    # Bottleneck blocks
+    x = bottleneck_block(x, filters=16, expansion_factor=1, stride=1, repeats=1, alpha=alpha)
+    x = bottleneck_block(x, filters=24, expansion_factor=6, stride=2, repeats=2, alpha=alpha)
+    x = bottleneck_block(x, filters=32, expansion_factor=6, stride=2, repeats=3, alpha=alpha)
+    x = bottleneck_block(x, filters=64, expansion_factor=6, stride=2, repeats=4, alpha=alpha)
+    x = bottleneck_block(x, filters=96, expansion_factor=6, stride=1, repeats=3, alpha=alpha)
+    x = bottleneck_block(x, filters=160, expansion_factor=6, stride=2, repeats=3, alpha=alpha)
+    x = bottleneck_block(x, filters=320, expansion_factor=6, stride=1, repeats=1, alpha=alpha)
+
+    # Last Conv2D layer
+    x = tf.keras.layers.Conv2D(round_filters(1280, alpha), kernel_size=1, strides=1, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU(6.0)(x)
+
+    # Global average pooling, dropout, and dense output
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobilenet_v2')
+
+
+
+@gin.configurable
+def efficientnet_b0(input_shape, n_classes, width_coefficient=1.0, depth_coefficient=1.0, dropout_rate=0.2):
+    '''
+    Defines the EfficientNetB0 architecture
+
+    Args:
+        input_shape (tuple): Shape of the input tensor (height, width, channels)
+        n_classes (int): Number of output classes
+        width_coefficient (float): Width scaling factor
+        depth_coefficient (float): Depth scaling factor
+        dropout_rate (float): Dropout rate for the top layer
+
+    Returns:
+        (tf.keras.Model): EfficientNetB0 model
+    '''
+    def round_filters(filters, width_coefficient):
+        return max(8, int(filters * width_coefficient + 0.5) // 8 * 8)
+
+    def round_repeats(repeats, depth_coefficient):
+        return int(repeats * depth_coefficient + 0.5)
+
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
+    x = tf.keras.layers.Rescaling(1.0 / 255.0)(inputs)
+
+    # Initial Conv2D layer
+    x = tf.keras.layers.Conv2D(round_filters(32, width_coefficient), kernel_size=3, strides=2, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    # MBConv blocks
+    x = mbconv_block(x, filters=16, expansion_factor=1, stride=1, repeats=round_repeats(1, depth_coefficient), width_coefficient=width_coefficient)
+    x = mbconv_block(x, filters=24, expansion_factor=6, stride=2, repeats=round_repeats(2, depth_coefficient), width_coefficient=width_coefficient)
+    x = mbconv_block(x, filters=40, expansion_factor=6, stride=2, repeats=round_repeats(2, depth_coefficient), width_coefficient=width_coefficient)
+    x = mbconv_block(x, filters=80, expansion_factor=6, stride=2, repeats=round_repeats(3, depth_coefficient), width_coefficient=width_coefficient)
+    x = mbconv_block(x, filters=112, expansion_factor=6, stride=1, repeats=round_repeats(3, depth_coefficient), width_coefficient=width_coefficient)
+    x = mbconv_block(x, filters=192, expansion_factor=6, stride=2, repeats=round_repeats(4, depth_coefficient), width_coefficient=width_coefficient)
+    x = mbconv_block(x, filters=320, expansion_factor=6, stride=1, repeats=round_repeats(1, depth_coefficient), width_coefficient=width_coefficient)
+
+    # Last Conv2D layer
+    x = tf.keras.layers.Conv2D(round_filters(1280, width_coefficient), kernel_size=1, strides=1, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    # Global average pooling, dropout, and dense output
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='efficientnet_b0')
+
+
+@gin.configurable
+def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
+    '''
+    Defines a pretrained MobileNetV2 architecture
+
+    Args:
+        input_shape (tuple): Shape of the input tensor (height, width, channels)
+        n_classes (int): Number of output classes
+        trainable_rate (float): proportion of trainable parameters in the feature extraction module
+        dropout_rate (float): Dropout rate for the top layer
 
     Returns:
         (tf.keras.Model): MobileNetV2 model
@@ -125,39 +157,107 @@ def mobilenet_v2(input_shape, n_classes, alpha=1.0):
 
     # Input layer
     inputs = tf.keras.Input(shape=input_shape)
-    x = tf.keras.layers.Rescaling(1.0 / 255.0)(inputs)
 
-    # First layer: Conv2D with stride 2 and 32 filters
-    x = tf.keras.layers.Conv2D(int(32 * alpha), kernel_size=(3, 3), strides=2, padding='same', use_bias=False)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.ReLU(6.0)(x)
+    # Preprocess input data
+    prep_inputs = tf.keras.applications.mobilenet_v2.preprocess_input(inputs)
 
-    # Inverted residual blocks
-    x = inverted_residual_block(x, filters=16, expansion_factor=1, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=24, expansion_factor=6, stride=2, alpha=alpha)
-    x = inverted_residual_block(x, filters=24, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=32, expansion_factor=6, stride=2, alpha=alpha)
-    x = inverted_residual_block(x, filters=32, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=32, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=64, expansion_factor=6, stride=2, alpha=alpha)
-    x = inverted_residual_block(x, filters=64, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=64, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=64, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=96, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=96, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=96, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=160, expansion_factor=6, stride=2, alpha=alpha)
-    x = inverted_residual_block(x, filters=160, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=160, expansion_factor=6, stride=1, alpha=alpha)
-    x = inverted_residual_block(x, filters=320, expansion_factor=6, stride=1, alpha=alpha)
+    # Build the MobileNetV2 model with transfer learning
+    base_model = tf.keras.applications.MobileNetV2(include_top=False, weights='imagenet', input_shape=input_shape,
+                                                   pooling=None)
 
-    # Last convolutional layer
-    x = tf.keras.layers.Conv2D(int(1280 * alpha), kernel_size=(1, 1), strides=1, padding='same', use_bias=False)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.ReLU(6.0)(x)
+    # Fine tune from this layer onwards
+    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
+    # Freeze all the layers before the 'fine_tune_at' layer
+    for layer in base_model.layers[:fine_tune_at]:
+        layer.trainable = False
+
+    x = base_model(prep_inputs)
 
     # Global average pooling and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
     outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
 
-    return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobilenet_v2')
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobile_net_v2_pretrained')
+
+
+@gin.configurable
+def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
+    '''
+    Defines a pretrained DenseNet201 architecture
+
+    Args:
+        input_shape (tuple): Shape of the input tensor (height, width, channels)
+        n_classes (int): Number of output classes
+        trainable_rate (float): proportion of trainable parameters in the feature extraction module
+        dropout_rate (float): Dropout rate for the top layer
+
+    Returns:
+        (tf.keras.Model): DenseNet201 model
+    '''
+
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
+
+    # Preprocess input data
+    prep_inputs = tf.keras.applications.densenet.preprocess_input(inputs)
+
+    # Build the DenseNet201 model with transfer learning
+    base_model = tf.keras.applications.DenseNet201(include_top=False, weights='imagenet', input_shape=input_shape,
+                                                   pooling=None)
+
+    # Fine tune from this layer onwards
+    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
+    # Freeze all the layers before the 'fine_tune_at' layer
+    for layer in base_model.layers[:fine_tune_at]:
+        layer.trainable = False
+
+    x = base_model(prep_inputs)
+
+    # Global average pooling and dense output
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='densenet201_pretrained')
+
+
+@gin.configurable
+def resnet50_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
+    '''
+    Defines a pretrained ResNet50 architecture
+
+    Args:
+        input_shape (tuple): Shape of the input tensor (height, width, channels)
+        n_classes (int): Number of output classes
+        trainable_rate (float): proportion of trainable parameters in the feature extraction module
+        dropout_rate (float): Dropout rate for the top layer
+
+    Returns:
+        (tf.keras.Model): ResNet50 model
+    '''
+
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
+
+    # Preprocess input data
+    prep_inputs = tf.keras.applications.resnet50.preprocess_input(inputs)
+
+    # Build the ResNet50 model with transfer learning
+    base_model = tf.keras.applications.ResNet50(include_top=False, weights='imagenet', input_shape=input_shape,
+                                                pooling=None)
+
+    # Fine tune from this layer onwards
+    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
+    # Freeze all the layers before the 'fine_tune_at' layer
+    for layer in base_model.layers[:fine_tune_at]:
+        layer.trainable = False
+
+    x = base_model(prep_inputs)
+
+    # Global average pooling and dense output
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='resnet50_pretrained')

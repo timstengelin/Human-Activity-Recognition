@@ -36,7 +36,6 @@ def evaluate(model, ds_test, run_paths):
         y_pred = model(data)
         binary_accuracy.update_state(label, y_pred)
         binary_confusion_matrix.update_state(label, y_pred)
-        break
 
     # Plot accuracy
     logging.info(f'Calculated binary accuracy for test dataset: {binary_accuracy.result().numpy()}')

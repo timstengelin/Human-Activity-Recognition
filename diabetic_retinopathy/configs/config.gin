@@ -1,28 +1,53 @@
-# Architectures
-mobilenet_v2.alpha = 1.0 # Width multiplier for scaling the number of filters in each layer
+# ---------- ARCHITECTURES ----------
 
-# Layers
+# MobileNetV2
+mobilenet_v2.alpha = 1.0
+mobilenet_v2.dropout_rate=0.2
 
-# Training
+# EfficientNetB0
+efficientnet_b0.width_coefficient=1.0
+efficientnet_b0.depth_coefficient=1.0
+efficientnet_b0.dropout_rate=0.2
+
+# Pretrained MobileNetV2
+mobilenet_v2_pretrained.trainable_rate = 0.2
+mobilenet_v2_pretrained.dropout_rate = 0.2
+
+# Pretrained DenseNet201
+densenet201_pretrained.trainable_rate = 0.2
+densenet201_pretrained.dropout_rate = 0.2
+
+
+# ---------- LAYERS ----------
+
+
+# ---------- TRAINING ----------
+
 Trainer.total_steps = 10000
-Trainer.log_interval = 1e1
+Trainer.log_interval = 1e2
 Trainer.ckpt_interval = 1e3
-Trainer.learning_rate = 1e-4
+Trainer.learning_rate = 1e-5
 
-# Folder/Path generation
-gen_run_folder.path_model_id = 'le_net' # Specifies the name of the experiment
+
+# ---------- FOLDER/PATH GENERATION ----------
+
+gen_run_folder.path_model_id = 'TEST' # Specifies the name of the experiment
 gen_run_folder.new_model = True # Determines whether a new model is to be trained
     # True := A new model is trained from scratch
     # False := A model from an existing experiment is trained further
 
-# Input pipeline
+
+# ---------- INPUT PIPELINE ----------
+
 load.img_dir = '/misc/home/data/IDRID_dataset/images'
-#load.img_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/images' # For local execution on Tim's PC
+#load.img_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/images'
+    # For local execution on Tim's PC
 load.csv_dir = '/misc/home/data/IDRID_dataset/labels'
-#load.csv_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/labels' # For local execution on Tim's PC
-load.load_record = True # If False, TFRecord files are created
+#load.csv_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/labels'
+    # For local execution on Tim's PC
+load.load_record = False # If False, TFRecord files are created
 load.resampling = True
 load.train_val_split = 0.8
 load.caching = True
-load.batch_size = 32
-load.augmentation = False
+load.batch_size = 16
+load.augmentation = True
