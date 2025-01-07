@@ -35,7 +35,7 @@ def tune(run_paths):
             'max': 0.5
         },
         'model': {
-            'values': ['MobileNetV2_pretrained'] #["DenseNet201_pretrained"] # ["LSTM_model", "GRU_model", "RNN_model"]
+            'values': ['ResNet50_pretrained'] #['MobileNetV2_pretrained'] #["DenseNet201_pretrained"] # ["LSTM_model", "GRU_model", "RNN_model"]
          },
         'batch_size': {
             'min': 8,
@@ -44,7 +44,7 @@ def tune(run_paths):
     }
     sweep_config['parameters'] = parameters_dict
 
-    sweep_id = wandb.sweep(sweep=sweep_config, project="mobilenet_v2_pretrained")
+    sweep_id = wandb.sweep(sweep=sweep_config, project="resnet50_pretrained")
 
 
 
@@ -62,7 +62,7 @@ def tune(run_paths):
             config = wandb.config
 
             # Model training code here ...
-            ds_train, ds_val, ds_test = datasets.load()
+            ds_train, ds_val, ds_test = datasets.load(load_record=False, batch_size=config.batch_size, augmentation=True)
 
             if config.model == 'LeNet':
                 model = le_net(input_shape=(256, 256, 3),
@@ -85,6 +85,11 @@ def tune(run_paths):
                                                 dropout_rate=config.dropout_rate)
             elif config.model == 'DenseNet201_pretrained':
                 model = densenet201_pretrained(input_shape=(256, 256, 3),
+                                               n_classes=2,
+                                               trainable_rate=config.trainable_rate,
+                                               dropout_rate=config.dropout_rate)
+            elif config.model == 'ResNet50_pretrained':
+                model = resnet50_pretrained(input_shape=(256, 256, 3),
                                                n_classes=2,
                                                trainable_rate=config.trainable_rate,
                                                dropout_rate=config.dropout_rate)
