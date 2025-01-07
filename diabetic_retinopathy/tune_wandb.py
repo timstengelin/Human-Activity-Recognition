@@ -54,7 +54,7 @@ def get_sweep_config(model_name):
                 'dropout_rate': {'values': [0.1, 0.25, 0.4]},
                 'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
                 'batch_size': {'values': [8, 16, 32, 64]},
-                'total_steps': {'values': [3000]}
+                'total_steps': {'values': [50000]}
             }
         }
     elif model_name == 'DenseNet201_pretrained':
@@ -66,7 +66,7 @@ def get_sweep_config(model_name):
                 'dropout_rate': {'values': [0.1, 0.25, 0.4]},
                 'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
                 'batch_size': {'values': [8, 16, 32, 64]},
-                'total_steps': {'values': [3000]}
+                'total_steps': {'values': [50000]}
             }
         }
     elif model_name == 'ResNet50_pretrained':
@@ -78,7 +78,7 @@ def get_sweep_config(model_name):
                 'dropout_rate': {'values': [0.1, 0.25, 0.4]},
                 'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
                 'batch_size': {'values': [8, 16, 32, 64]},
-                'total_steps': {'values': [3000]}
+                'total_steps': {'values': [50000]}
             }
         }
     else:

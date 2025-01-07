@@ -13,7 +13,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('mode', 'tune', 'Specifies wheater to train, tune or evaluate a model')
 
 def main(argv):
-    model_name = 'MobileNetV2'
+    model_name = 'MobileNetV2_pretrained'
 
     # collect data from gin config file
     gin.parse_config_files_and_bindings(['configs/config.gin'], [])
