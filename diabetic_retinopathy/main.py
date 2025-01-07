@@ -13,7 +13,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('mode', 'tune', 'Specifies wheater to train, tune or evaluate a model')
 
 def main(argv):
-    model_name = 'MobileNetV2_pretrained'
+    model_name = 'EfficientNetB3_pretrained'
 
     # collect data from gin config file
     gin.parse_config_files_and_bindings(['configs/config.gin'], [])
@@ -39,6 +39,8 @@ def main(argv):
         model = efficientnet_b0(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'MobileNetV2_pretrained':
         model = mobilenet_v2_pretrained(input_shape=(256, 256, 3), n_classes=2)
+    elif model_name == 'EfficientNetB3_pretrained':
+        model = efficientnet_b3_pretrained(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'DenseNet201_pretrained':
         model = densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'ResNet50_pretrained':

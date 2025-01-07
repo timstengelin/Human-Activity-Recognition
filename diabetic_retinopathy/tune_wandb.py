@@ -30,7 +30,7 @@ def get_sweep_config(model_name):
                 'dropout_rate': {'values': [0.1, 0.25, 0.4]},
                 'learning_rate': {'values': [1e-3, 5e-4, 1e-4]},
                 'batch_size': {'values': [8, 16, 32, 64]},
-                'total_steps': {'values': [10000]}
+                'total_steps': {'values': [20000]}
             }
         }
     elif model_name == 'EfficientNetB0':
@@ -42,10 +42,22 @@ def get_sweep_config(model_name):
                 'dropout_rate': {'values': [0.1, 0.25, 0.4]},
                 'learning_rate': {'values': [1e-3, 5e-4, 1e-4]},
                 'batch_size': {'values': [8, 16, 32, 64]},
-                'total_steps': {'values': [10000]}
+                'total_steps': {'values': [20000]}
             }
         }
     elif model_name == 'MobileNetV2_pretrained':
+        sweep_config = {
+            'method': 'random',
+            'metric': {'name': 'acc_val', 'goal': 'maximize'},
+            'parameters': {
+                'trainable_rate': {'values': [0.1, 0.35, 0.6]},
+                'dropout_rate': {'values': [0.1, 0.25, 0.4]},
+                'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
+                'batch_size': {'values': [8, 16, 32, 64]},
+                'total_steps': {'values': [50000]}
+            }
+        }
+    elif model_name == 'EfficientNetB3_pretrained':
         sweep_config = {
             'method': 'random',
             'metric': {'name': 'acc_val', 'goal': 'maximize'},
@@ -133,6 +145,11 @@ def tune(run_paths, model_name):
                                                 n_classes=2,
                                                 trainable_rate=config.trainable_rate,
                                                 dropout_rate=config.dropout_rate)
+            elif model_name == 'EfficientNetB3_pretrained':
+                model = densenet201_pretrained(input_shape=(256, 256, 3),
+                                               n_classes=2,
+                                               trainable_rate=config.trainable_rate,
+                                               dropout_rate=config.dropout_rate)
             elif model_name == 'DenseNet201_pretrained':
                 model = densenet201_pretrained(input_shape=(256, 256, 3),
                                                n_classes=2,
