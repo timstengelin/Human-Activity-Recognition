@@ -45,7 +45,7 @@ load.img_dir = '/misc/home/data/IDRID_dataset/images'
 load.csv_dir = '/misc/home/data/IDRID_dataset/labels'
 #load.csv_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/labels'
     # For local execution on Tim's PC
-load.load_record = True # If False, TFRecord files are created
+load.load_record = False # If False, TFRecord files are created
 load.resampling = True
 load.train_val_split = 0.8
 load.caching = True

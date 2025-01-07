@@ -30,7 +30,7 @@ def main(argv):
     ds_train, ds_val, ds_test = datasets.load()
 
     # define model
-    model_name = 'MobileNetV2_pretrained'
+    model_name = 'ResNet50_pretrained'
     if model_name == 'LeNet':
         model = le_net(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'MobileNetV2':
@@ -41,6 +41,8 @@ def main(argv):
         model = mobilenet_v2_pretrained(input_shape=(256, 256, 3), n_classes=2)
     elif model_name == 'DenseNet201_pretrained':
         model = densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2)
+    elif model_name == 'ResNet50_pretrained':
+        model = resnet50_pretrained(input_shape=(256, 256, 3), n_classes=2)
     model.summary()
 
     if FLAGS.mode == 'train':

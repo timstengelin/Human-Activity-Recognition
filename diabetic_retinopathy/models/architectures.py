@@ -220,3 +220,44 @@ def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_r
     outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='densenet201_pretrained')
+
+
+@gin.configurable
+def resnet50_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
+    '''
+    Defines a pretrained ResNet50 architecture
+
+    Args:
+        input_shape (tuple): Shape of the input tensor (height, width, channels)
+        n_classes (int): Number of output classes
+        trainable_rate (float): proportion of trainable parameters in the feature extraction module
+        dropout_rate (float): Dropout rate for the top layer
+
+    Returns:
+        (tf.keras.Model): ResNet50 model
+    '''
+
+    # Input layer
+    inputs = tf.keras.Input(shape=input_shape)
+
+    # Preprocess input data
+    prep_inputs = tf.keras.applications.resnet50.preprocess_input(inputs)
+
+    # Build the ResNet50 model with transfer learning
+    base_model = tf.keras.applications.ResNet50(include_top=False, weights='imagenet', input_shape=input_shape,
+                                                pooling=None)
+
+    # Fine tune from this layer onwards
+    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
+    # Freeze all the layers before the 'fine_tune_at' layer
+    for layer in base_model.layers[:fine_tune_at]:
+        layer.trainable = False
+
+    x = base_model(prep_inputs)
+
+    # Global average pooling and dense output
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(dropout_rate)(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='resnet50_pretrained')
