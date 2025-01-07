@@ -96,7 +96,7 @@ def tune(run_paths, model_name):
 
     def func():
         # Default configuration for tuning
-        config = {
+        config = { # TODO: Den Inhalt von config möglich rauszulöschen?
             'total_steps': 3000,
             'learning_rate': 0.0001,
             'trainable_rate': 0.2,
@@ -105,7 +105,7 @@ def tune(run_paths, model_name):
         }
 
         if config:
-            run = wandb.init(config=config)
+            run = wandb.init(config=config) #TODO: Den erstellten wandb-Ordner zyklisch wieder Löschen, dass es zu keiner Memory-Shortage kommt
             config = wandb.config
 
             # Load dataset
