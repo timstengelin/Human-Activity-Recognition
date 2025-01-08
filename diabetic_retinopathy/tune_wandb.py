@@ -117,7 +117,7 @@ def tune(run_paths, model_name):
         }
 
         if config:
-            run = wandb.init(config=config) #TODO: Den erstellten wandb-Ordner zyklisch wieder Löschen, dass es zu keiner Memory-Shortage kommt
+            run = wandb.init(config=config)
             config = wandb.config
 
             # Load dataset

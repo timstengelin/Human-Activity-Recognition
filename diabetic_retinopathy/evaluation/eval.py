@@ -51,5 +51,6 @@ def evaluate(model, ds_test, run_paths):
     plt.title("Binary confusion matrix")
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
-    plt.savefig(os.path.join(run_paths['path_summary_val'], 'confusion_matrix.png'))
+    plt.savefig(os.path.join(run_paths['path_model_id'], 'confusion_matrix.png'))
+        # TODO: Extra Ordner eval anlegen und darin speichern
     plt.show()
