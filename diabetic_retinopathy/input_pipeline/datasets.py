@@ -143,7 +143,7 @@ def prepare_dataset(dataset, augmentation, batch_size, caching, repeat):
             outputs = tf.cond(
                 pred=tf.logical_and(apply_layer, training),
                 true_fn=lambda: self.layer(inputs),
-                false_fn=lambda: inputs,
+                false_fn=lambda: tf.cast(inputs, dtype=tf.float32),
             )
             return outputs
 
@@ -201,7 +201,7 @@ def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, ba
         create_record(img_dir=train_img_dir, csv_dir=train_csv_dir, filename_record=train_record_filename,
                       resampling=resampling)
         create_record(img_dir=test_img_dir, csv_dir=test_csv_dir, filename_record=test_record_filename,
-                      resampling=resampling)
+                      resampling=False)
 
         logging.info('Creation of new record files from dataset finished')
 
