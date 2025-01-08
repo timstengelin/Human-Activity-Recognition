@@ -115,7 +115,7 @@ def tune(run_paths, model_name):
 
     def func():
         # Default configuration for tuning
-        config = {}
+        config = {'total_steps': 1000}
 
         if config:
             run = wandb.init(config=config)
