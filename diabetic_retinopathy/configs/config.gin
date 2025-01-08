@@ -1,4 +1,4 @@
-# ---------- ARCHITECTURES ----------
+# ---------- ARCHITECTURE PARAMETERS FOR MODE TRAIN, CREATE ENSEMBLE MODEL AND EVALUATE ----------
 
 # MobileNetV2
 mobilenet_v2.alpha = 1.0
@@ -16,9 +16,6 @@ mobilenet_v2_pretrained.dropout_rate = 0.2
 # Pretrained DenseNet201
 densenet201_pretrained.trainable_rate = 0.2
 densenet201_pretrained.dropout_rate = 0.2
-
-
-# ---------- LAYERS ----------
 
 
 # ---------- TRAINING ----------
