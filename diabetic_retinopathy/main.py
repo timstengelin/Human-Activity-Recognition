@@ -11,15 +11,15 @@ from tune_wandb import *
 from ensemble_learning import *
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string('mode', 'evaluate',
+flags.DEFINE_string('mode', 'tune',
                     'The different modes are: train, create_ensemble_model, tune, evaluate')
 
 def main(argv):
 
     # Set the model to be worked with
-    #model_names = ['MobileNetV2'] # e.g. for mode train, tune or evaluate
+    model_names = ['EfficientNetB0'] # e.g. for mode train, tune or evaluate
     #model_names = ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB0'] # e.g. for mode create_ensemble_model
-    model_names = ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB0'] # e.g. for mode evaluate
+    #model_names = ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB0'] # e.g. for mode evaluate
 
     # Create empty lists
     models = []
