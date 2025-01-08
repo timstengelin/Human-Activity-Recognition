@@ -7,9 +7,11 @@ import models.architectures as architectures
 
 import wandb
 
-wandb.login(key="8478ddb0f2c0978283abcb1e18db08bebd904d3f")
+@gin.configurable
+def tune(run_paths, key):
+    # wandb login with given key
+    wandb.login(key=key)
 
-def tune(run_paths):
     sweep_config = {
         'method': 'random'
     }
@@ -51,13 +53,13 @@ def tune(run_paths):
             'max': 256
         }
     }
+    # create wandb conf and obj
     sweep_config['parameters'] = parameters_dict
-
     sweep_id = wandb.sweep(sweep=sweep_config, project="iss-dl15")
 
 
-
-    def func():
+    #actual tuning function
+    def tuning():
         config = {
             'steps': 50,
             'lr_rate': 0.01,
@@ -100,6 +102,8 @@ def tune(run_paths):
             for _ in trainer.train():
                 continue
 
-    wandb.agent(sweep_id, function=func, count=200)
+    # use agent for optimization
+    wandb.agent(sweep_id, function=tuning, count=200)
 
+    # clear wandb job
     wandb.finish()

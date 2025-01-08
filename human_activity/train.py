@@ -6,6 +6,7 @@ import evaluation.metrics as metrics
 import numpy as np
 
 weight=np.array([1,1,1,1,1,1,5,5,5,5,5,5])
+
 def crossentropy(labels, predictions, weights, *args, **kwargs):
     # scale predictions so that the class probas of each sample sum to 1
     predictions /= tf.keras.backend.sum(predictions, axis=-1, keepdims=True)
