@@ -28,11 +28,11 @@ def get_sweep_config(model_name):
             'metric': {'name': 'acc_val', 'goal': 'maximize'},
             'parameters': {
                 'alpha': {'values': [0.75, 1, 1.25]},
-                'dropout_rate': {'values': [0.1, 0.25, 0.4]},
+                'dropout_rate': {'values': [0.2, 0.4]},
                 'learning_rate': {'values': [1e-3, 5e-4, 1e-4]},
                 'batch_size': {'values': [8, 16, 32]},
                 'total_steps': {'values': [15000]},
-                'augmentation': {'values': [False, True]}
+                'augmentation': {'values': [False]}
             }
         }
     elif model_name == 'EfficientNetB0':
@@ -44,8 +44,8 @@ def get_sweep_config(model_name):
                 'dropout_rate': {'values': [0.2, 0.4]},
                 'learning_rate': {'values': [1e-3, 5e-4, 1e-4]},
                 'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [15000]},
-                'augmentation': {'values': [False, True]}
+                'total_steps': {'values': [30000]},
+                'augmentation': {'values': [True]}
             }
         }
     elif model_name == 'MobileNetV2_pretrained':
