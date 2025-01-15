@@ -53,11 +53,11 @@ def get_sweep_config(model_name):
             'method': 'grid', # 'grid' for grid search, 'random' for random search
             'metric': {'name': 'acc_val', 'goal': 'maximize'},
             'parameters': {
-                'trainable_rate': {'values': [0.1, 0.35, 0.6]},
-                'dropout_rate': {'values': [0.2, 0.4]},
-                'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
-                'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [50000]},
+                'trainable_rate': {'values': [0.25, 0.45]},
+                'dropout_rate': {'values': [0.3]},
+                'learning_rate': {'values': [1e-4, 1e-5]},
+                'batch_size': {'values': [16]},
+                'total_steps': {'values': [60000]},
                 'augmentation': {'values': [True]}
             }
         }
@@ -66,11 +66,11 @@ def get_sweep_config(model_name):
             'method': 'grid', # 'grid' for grid search, 'random' for random search
             'metric': {'name': 'acc_val', 'goal': 'maximize'},
             'parameters': {
-                'trainable_rate': {'values': [0.1, 0.35, 0.6]},
-                'dropout_rate': {'values': [0.2, 0.4]},
-                'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
-                'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [50000]},
+                'trainable_rate': {'values': [0.25, 0.45]},
+                'dropout_rate': {'values': [0.3]},
+                'learning_rate': {'values': [1e-4, 1e-5]},
+                'batch_size': {'values': [16]},
+                'total_steps': {'values': [60000]},
                 'augmentation': {'values': [True]}
             }
         }
@@ -79,11 +79,11 @@ def get_sweep_config(model_name):
             'method': 'grid', # 'grid' for grid search, 'random' for random search
             'metric': {'name': 'acc_val', 'goal': 'maximize'},
             'parameters': {
-                'trainable_rate': {'values': [0.1, 0.35, 0.6]},
-                'dropout_rate': {'values': [0.2, 0.4]},
-                'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
-                'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [50000]},
+                'trainable_rate': {'values': [0.25, 0.45]},
+                'dropout_rate': {'values': [0.3]},
+                'learning_rate': {'values': [1e-4, 1e-5]},
+                'batch_size': {'values': [16]},
+                'total_steps': {'values': [60000]},
                 'augmentation': {'values': [True]}
             }
         }
@@ -92,11 +92,11 @@ def get_sweep_config(model_name):
             'method': 'grid',
             'metric': {'name': 'acc_val', 'goal': 'maximize'},
             'parameters': {
-                'trainable_rate': {'values': [0.1, 0.35, 0.6]},
-                'dropout_rate': {'values': [0.2, 0.4]},
-                'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
-                'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [50000]},
+                'trainable_rate': {'values': [0.25, 0.45]},
+                'dropout_rate': {'values': [0.3]},
+                'learning_rate': {'values': [1e-4, 1e-5]},
+                'batch_size': {'values': [16]},
+                'total_steps': {'values': [60000]},
                 'augmentation': {'values': [True]}
             }
         }
