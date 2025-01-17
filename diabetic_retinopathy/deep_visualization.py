@@ -3,6 +3,7 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
+import logging
 
 @gin.configurable
 def visualize(model, images, labels, step, run_paths):
@@ -26,11 +27,11 @@ def visualize(model, images, labels, step, run_paths):
     orig_img_bgr = cv2.cvtColor(orig_img, cv2.COLOR_RGB2BGR)
     orig_img_path = os.path.join(orig_img_dir, f'original_step_{step}_label_{orig_label}.png')
     cv2.imwrite(orig_img_path, orig_img_bgr)
-    print(f"Image saved at {orig_img_path}")
+    logging.info(f"Image saved at {orig_img_path}")
 
     # Generate and save Grad-CAM visualization
     grad_cam_img, _, _, grad_cam_save_dir = grad_cam(model, images, step, os.path.join(vis_path, 'grad_cam'))
-    print(f"Grad-CAM visualization saved at {grad_cam_save_dir}")
+    logging.info(f"Grad-CAM visualization saved at {grad_cam_save_dir}")
 
 @gin.configurable
 def grad_cam(model, images, step, grad_cam_dir):
