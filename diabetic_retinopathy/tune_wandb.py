@@ -83,7 +83,7 @@ def get_sweep_config(model_name):
                 'dropout_rate': {'values': [0.3]},
                 'learning_rate': {'values': [1e-4, 1e-5]},
                 'batch_size': {'values': [16]},
-                'total_steps': {'values': [60000]},
+                'total_steps': {'values': [75000]},
                 'augmentation': {'values': [True]}
             }
         }
@@ -96,7 +96,7 @@ def get_sweep_config(model_name):
                 'dropout_rate': {'values': [0.3]},
                 'learning_rate': {'values': [1e-4, 1e-5]},
                 'batch_size': {'values': [16]},
-                'total_steps': {'values': [60000]},
+                'total_steps': {'values': [75000]},
                 'augmentation': {'values': [True]}
             }
         }
