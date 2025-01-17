@@ -7,6 +7,7 @@ import pandas as pd
 import seaborn as sn
 
 from evaluation.metrics import BinaryAccuracy, BinaryConfusionMatrix
+from deep_visualization import *
 
 def evaluate(model, ds_test, run_paths):
 
@@ -54,3 +55,9 @@ def evaluate(model, ds_test, run_paths):
     plt.savefig(os.path.join(run_paths['path_model_id'], 'confusion_matrix.png'))
         # TODO: Extra Ordner eval anlegen und darin speichern
     plt.show()
+
+    # Perform deep visualization (for output of the first 3 images)
+    for idx, (test_image, test_label) in enumerate(ds_test):
+        visualize(model, test_image, test_label, idx, run_paths)
+        if idx >= 2:
+            break
