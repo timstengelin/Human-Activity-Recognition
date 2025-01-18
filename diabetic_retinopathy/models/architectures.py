@@ -34,7 +34,10 @@ def le_net(input_shape, n_classes):
     x = tf.keras.layers.Dense(120, activation='tanh')(x)
     x = tf.keras.layers.Dense(84, activation='tanh')(x)
 
-    outputs = tf.keras.layers.Dense(units=n_classes, activation='sigmoid')(x)
+    # Identity layer for deep visualization
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
+
+    outputs = tf.keras.layers.Dense(units=n_classes, activation='sigmoid', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='lenet')
 
@@ -79,10 +82,13 @@ def mobilenet_v2(input_shape, n_classes, alpha=1.0, dropout_rate=0.2):
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU(6.0)(x)
 
+    # Identity layer for deep visualization
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
+
     # Global average pooling, dropout, and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobilenet_v2')
 
@@ -132,10 +138,13 @@ def efficientnet_b0(input_shape, n_classes, width_coefficient=1.0, depth_coeffic
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
 
+    # Identity layer for deep visualization
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
+
     # Global average pooling, dropout, and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs) #, name='efficientnet_b0' #TODO
 
@@ -173,10 +182,13 @@ def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_
 
     x = base_model(prep_inputs)
 
+    # Identity layer for deep visualization
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
+
     # Global average pooling and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobilenet_v2_pretrained')
 
@@ -214,10 +226,13 @@ def efficientnet_b3_pretrained(input_shape, n_classes, trainable_rate=0.2, dropo
 
     x = base_model(prep_inputs)
 
+    # Identity layer for deep visualization
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
+
     # Global average pooling and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='efficientnet_b3_pretrained')
 
@@ -255,10 +270,13 @@ def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_r
 
     x = base_model(prep_inputs)
 
+    # Identity layer for deep visualization
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
+
     # Global average pooling and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='densenet201_pretrained')
 
@@ -296,10 +314,13 @@ def resnet50_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate
 
     x = base_model(prep_inputs)
 
+    # Identity layer for deep visualization
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
+
     # Global average pooling and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='resnet50_pretrained')
 
