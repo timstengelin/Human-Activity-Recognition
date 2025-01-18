@@ -5,151 +5,260 @@ import numpy as np
 import tensorflow as tf
 import logging
 
+
 @gin.configurable
 def visualize(model, images, labels, step, run_paths):
     '''
-    Generates and saves visualizations, including original and Grad-CAM images
+    Execute visualization for deep learning models
 
     Args:
-        model (keras.Model): Trained model
+        model (keras.Model): Neural network to analyze
         images (Tensor): Batch of input images
-        labels (Tensor): Corresponding labels for the images
+        labels (Tensor): Corresponding labels for input images
         step (int): Current training step
-        run_paths (dict): Paths for saving outputs
+        run_paths (dict): Dictionary containing directories for saving outputs
     '''
-    vis_path = run_paths.get('path_deep_visualization', './visualizations')
 
-    # Process original image
-    orig_img_dir = os.path.join(vis_path, 'original')
-    os.makedirs(orig_img_dir, exist_ok=True)
-    orig_img = tf.cast(images[0] * 255, tf.uint8).numpy()
-    orig_label = labels[0].numpy()
-    orig_img_bgr = cv2.cvtColor(orig_img, cv2.COLOR_RGB2BGR)
-    orig_img_path = os.path.join(orig_img_dir, f'original_step_{step}_label_{orig_label}.png')
-    cv2.imwrite(orig_img_path, orig_img_bgr)
-    logging.info(f"Original visualization saved at {orig_img_path}")
+    # Define directories for saving visual outputs
+    viz_dirs = {
+        "original": os.path.join(run_paths['path_deep_visualization'], 'original'),
+        "grad_cam": os.path.join(run_paths['path_deep_visualization'], 'grad_cam'),
+        "guided_backprop": os.path.join(run_paths['path_deep_visualization'], 'guided_backpropagation'),
+        "guided_grad_cam": os.path.join(run_paths['path_deep_visualization'], 'guided_grad_cam'),
+        "integrated_gradients": os.path.join(run_paths['path_deep_visualization'], 'integrated_gradients'),
+    }
+
+    # Save the original image
+    original_image = tf.image.convert_image_dtype(images[0], dtype=tf.uint8)
+    original_image = cv2.cvtColor(original_image.numpy(), cv2.COLOR_RGB2BGR)
+    original_label = labels[0].numpy()
+    original_path = os.path.join(viz_dirs['original'], f'original_step_{step}_label_{original_label}.png')
+    os.makedirs(viz_dirs['original'], exist_ok=True)
+    cv2.imwrite(original_path, original_image)
+    logging.info(f'Original image for step {step} saved at {original_path}.')
 
     # Generate and save Grad-CAM visualization
-    grad_cam_img, _, _, grad_cam_save_dir = grad_cam(model, images, step, os.path.join(vis_path, 'grad_cam'))
-    logging.info(f"Grad-CAM visualization saved at {grad_cam_save_dir}")
+    grad_image, heatmap, pred, grad_path = grad_cam(model, images, step, viz_dirs['grad_cam'])
+    cv2.imwrite(grad_path, grad_image)
+    logging.info(f'Grad-CAM visualization for step {step} saved at {grad_path}.')
+
+    # Generate and save Guided Backpropagation visualization
+    guided_img, guided_path = guided_backpropagation(model, images, step, pred, viz_dirs['guided_backprop'])
+    cv2.imwrite(guided_path, guided_img)
+    logging.info(f'Guided Backpropagation visualization for step {step} saved at {guided_path}.')
 
     # Generate and save Guided Grad-CAM visualization
-    guided_grad_cam_img, _, _, guided_grad_cam_save_dir = guided_grad_cam(model, images, step, os.path.join(vis_path, 'guided_grad_cam'))
-    logging.info(f"Guided Grad-CAM visualization saved at {guided_grad_cam_save_dir}")
+    guided_cam_img, guided_cam_path = guided_grad_cam(guided_img, heatmap, step, pred, viz_dirs['guided_grad_cam'])
+    cv2.imwrite(guided_cam_path, guided_cam_img)
+    logging.info(f'Guided Grad-CAM visualization for step {step} saved at {guided_cam_path}.')
+
+    # Generate and save Integrated Gradients visualization
+    int_grad_img, int_grad_path = integrated_gradients(model, images, step, pred, viz_dirs['integrated_gradients'])
+    cv2.imwrite(int_grad_path, int_grad_img)
+    logging.info(f'Integrated Gradients visualization for step {step} saved at {int_grad_path}.')
+
 
 @gin.configurable
-def grad_cam(model, images, step, grad_cam_dir):
+def grad_cam(model, images, step, grad_cam_path):
     '''
-    Creates Grad-CAM visualizations for a given image batch and saves them
+    Create Grad-CAM visualizations
 
     Args:
-        model (keras.Model): Trained model for visualization
-        images (Tensor): Batch of input images
-        step (int): Current training step for naming purposes
-        grad_cam_dir (str): Directory to save Grad-CAM images
+        model (keras.Model): The neural network model
+        images (Tensor): Input batch for visualization
+        step (int): Training step for which Grad-CAM is generated
+        grad_cam_path (str): Output directory for Grad-CAM images
 
     Returns:
-        Tuple: Grad-CAM image, heatmap, predicted class, Grad-CAM save directory.
+        tuple: Grad-CAM visualization, CAM heatmap, predicted class index, and image save path
     '''
-    os.makedirs(grad_cam_dir, exist_ok=True)
 
-    # Identify the last convolutional layer
-    conv_layer_name = next(layer.name for layer in reversed(model.layers) if isinstance(layer, tf.keras.layers.Conv2D))
-    grad_model = tf.keras.Model(inputs=model.inputs, outputs=[model.get_layer(conv_layer_name).output, model.output])
+    os.makedirs(grad_cam_path, exist_ok=True)
 
-    # Compute gradients for the predicted class
+    # Build a sub-model for Grad-CAM
+    grad_cam_model = tf.keras.Model(inputs=model.input, outputs=[
+        model.get_layer('last_conv').output,
+        model.get_layer('output').output
+    ])
+
+    # Compute gradients and predictions
     with tf.GradientTape() as tape:
-        conv_outputs, predictions = grad_model(images)
-        pred_class = tf.argmax(predictions[0])
-        loss = predictions[:, pred_class]
+        conv_output, predictions = grad_cam_model(images, training=False)
+        tape.watch(conv_output)
+        predicted_label = tf.argmax(predictions[0]).numpy()
+        target_score = predictions[:, predicted_label]
 
-    grads = tape.gradient(loss, conv_outputs)
-    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+    gradients = tape.gradient(target_score, conv_output)
 
-    conv_outputs = conv_outputs[0].numpy()
-    pooled_grads = pooled_grads.numpy()
-    for i in range(conv_outputs.shape[-1]):
-        conv_outputs[:, :, i] *= pooled_grads[i]
+    # Calculate weights and the CAM
+    weights = tf.reduce_mean(gradients, axis=(0, 1, 2)).numpy()
+    feature_map = conv_output[0].numpy()
+    cam = np.sum(feature_map * weights, axis=-1)
 
-    # Generate heatmap
-    heatmap = np.mean(conv_outputs, axis=-1)
-    heatmap = np.maximum(heatmap, 0)  # ReLU-like operation
-    heatmap /= heatmap.max() if heatmap.max() != 0 else 1
-    heatmap = cv2.resize(heatmap, (images.shape[2], images.shape[1]))
-    heatmap = cv2.applyColorMap(np.uint8(255 * heatmap), cv2.COLORMAP_JET)
+    # Process and normalize CAM
+    cam_resized = cv2.resize(cam, (images.shape[1], images.shape[2]))
+    cam_resized = np.maximum(cam_resized, 0) / (np.max(cam_resized) + 1e-16)
+    cam_colored = (cam_resized * 255).astype(np.uint8)
+    cam_colored = cv2.applyColorMap(cam_colored, cv2.COLORMAP_JET)
 
-    # Overlay heatmap on the original image
-    orig_img = tf.cast(images[0] * 255, tf.uint8).numpy()
-    orig_img_bgr = cv2.cvtColor(orig_img, cv2.COLOR_RGB2BGR)
-    grad_cam_img = cv2.addWeighted(orig_img_bgr, 0.6, heatmap, 0.4, 0)
+    # Overlay CAM on the original image
+    input_image = tf.image.convert_image_dtype(images[0], dtype=tf.uint8).numpy()
+    input_bgr = cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR)
+    grad_cam_result = cv2.addWeighted(input_bgr, 1, cam_colored, 0.3, 0)
 
-    # Save Grad-CAM image
-    grad_cam_path = os.path.join(grad_cam_dir, f'grad_cam_step_{step}.png')
-    cv2.imwrite(grad_cam_path, grad_cam_img)
+    # Define save path
+    output_path = os.path.join(grad_cam_path, f'grad_cam_step_{step}_prediction_{predicted_label}.png')
 
-    return grad_cam_img, heatmap, pred_class.numpy(), grad_cam_path
+    return grad_cam_result, cam_resized, predicted_label, output_path
 
 
 @gin.configurable
-def guided_grad_cam(model, images, step, guided_grad_cam_dir):
+def guided_backpropagation(model, images, step, prediction, guided_backprop_path):
     '''
-    Creates Guided Grad-CAM visualizations for a given image batch and saves them
+    Produce Guided Backpropagation visualizations
 
     Args:
-        model (keras.Model): Trained model for visualization
-        images (Tensor): Batch of input images
-        step (int): Current training step for naming purposes
-        guided_grad_cam_dir (str): Directory to save Guided Grad-CAM images
+        model (keras.Model): Model under analysis
+        images (Tensor): Input images for visualization
+        step (int): Training step when generating the visualization
+        prediction (int): Predicted class for the images
+        guided_backprop_path (str): Directory for saving the visualizations
 
     Returns:
-        Tuple: Guided Grad-CAM image, heatmap, predicted class, Guided Grad-CAM save directory.
+        tuple: Guided Backpropagation visualization and its file save path
     '''
-    os.makedirs(guided_grad_cam_dir, exist_ok=True)
 
-    # Identify the last convolutional layer
-    conv_layer_name = next(layer.name for layer in reversed(model.layers) if isinstance(layer, tf.keras.layers.Conv2D))
-    grad_model = tf.keras.Model(inputs=model.inputs, outputs=[model.get_layer(conv_layer_name).output, model.output])
+    os.makedirs(guided_backprop_path, exist_ok=True)
 
-    # Use a persistent GradientTape to calculate gradients multiple times
-    with tf.GradientTape(persistent=True) as tape:
+    # Define custom ReLU function
+    @tf.custom_gradient
+    def custom_relu(x):
+        def grad(dy):
+            return tf.where(dy > 0, dy, 0) * tf.where(x > 0, 1, 0)
+        return tf.nn.relu(x), grad
+
+    # Clone and modify the model to use custom ReLU
+    layer_outputs = model.get_layer('last_conv').output
+    guided_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
+    for layer in guided_model.layers:
+        if hasattr(layer, 'activation') and layer.activation == tf.keras.activations.relu:
+            layer.activation = custom_relu
+
+    # Compute gradients with respect to the input images
+    with tf.GradientTape() as tape:
         tape.watch(images)
-        conv_outputs, predictions = grad_model(images)
-        pred_class = tf.argmax(predictions[0])
-        loss = predictions[:, pred_class]
+        feature_maps = guided_model(images, training=False)
+    gradients = tape.gradient(feature_maps, images).numpy()
 
-    # Gradients with respect to convolutional layer outputs
-    grads = tape.gradient(loss, conv_outputs)
-    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+    # Normalize gradients for visualization
+    norm_grads = (gradients - np.mean(gradients)) / (np.std(gradients) + 1e-8)
+    norm_grads = np.clip((norm_grads * 0.5 + 0.5) * 255, 0, 255).astype(np.uint8)
 
-    conv_outputs = conv_outputs[0].numpy()
-    pooled_grads = pooled_grads.numpy()
-    for i in range(conv_outputs.shape[-1]):
-        conv_outputs[:, :, i] *= pooled_grads[i]
+    # Prepare save path
+    output_path = os.path.join(
+        guided_backprop_path, f'guided_backprop_step_{step}_prediction_{prediction}.png')
 
-    # Generate Grad-CAM heatmap
-    heatmap = np.mean(conv_outputs, axis=-1)
-    heatmap = np.maximum(heatmap, 0)  # ReLU-like operation
-    heatmap /= heatmap.max() if heatmap.max() != 0 else 1
-    heatmap = cv2.resize(heatmap, (images.shape[2], images.shape[1]))
-    heatmap = cv2.applyColorMap(np.uint8(255 * heatmap), cv2.COLORMAP_JET)
+    return norm_grads[0], output_path
 
-    # Gradients with respect to the input images
-    guided_grads = tape.gradient(loss, images)[0].numpy()
-    guided_grads = np.maximum(guided_grads, 0)  # ReLU operation
-    guided_grads -= guided_grads.min()
-    guided_grads /= guided_grads.max() if guided_grads.max() != 0 else 1
-    guided_grads = np.uint8(guided_grads * 255)
 
-    del tape  # Explicitly delete the persistent tape to free resources
+@gin.configurable
+def guided_grad_cam(guided_backprop_image, cam, step, prediction, guided_grad_cam_path):
+    '''
+    Generate the guided Grad-CAM images
 
-    # Multiply Grad-CAM heatmap with Guided Backprop gradients
-    guided_grad_cam = heatmap * guided_grads.astype('float64')
-    guided_grad_cam -= guided_grad_cam.min()
-    guided_grad_cam /= guided_grad_cam.max() if guided_grad_cam.max() != 0 else 1
-    guided_grad_cam = np.uint8(guided_grad_cam * 255)  # Convert back to uint8
+    Parameters:
+        guided_backprop_image (numpy array): guided backpropagation images
+        cam (numpy array): CAM mask images
+        step (int): number of corresponding model training steps when performing deep visualization
+        prediction (int): predicted labels of the corresponding images
+        guided_grad_cam_path (string): directory where guided Grad-CAM images are saved
 
-    # Save Guided Grad-CAM image
-    guided_grad_cam_path = os.path.join(guided_grad_cam_dir, f'guided_grad_cam_step_{step}.png')
-    cv2.imwrite(guided_grad_cam_path, guided_grad_cam)
+    Returns:
+        guided_grad_cam_image (numpy array): guided Grad-CAM images
+        save_path (string): the path and file names of the guided Grad-CAM images
+    '''
 
-    return guided_grad_cam, heatmap, pred_class.numpy(), guided_grad_cam_path
+    os.makedirs(guided_grad_cam_path, exist_ok=True)
+
+    # Integrate guided backpropagation and CAM to create the visualization
+    cam_reshaped = np.expand_dims(cam, axis=-1)
+    guided_grad_cam_image = np.multiply(guided_backprop_image, cam_reshaped).astype('uint8')
+
+    file_name = f"guided_grad_cam_step_{step}_prediction_{prediction}.png"
+    save_path = os.path.join(guided_grad_cam_path, file_name)
+
+    return guided_grad_cam_image, save_path
+
+
+@gin.configurable
+def integrated_gradients(model, images, step, prediction, integrated_gradients_path, m_steps=50, batch_size=32):
+    '''
+    Generate integrated gradients images
+
+    Parameters:
+        model (keras.Model): Keras model object
+        images (Tensor): Batch of images used for visualization
+        step (int): Training step during visualization
+        prediction (int): Predicted label for the images
+        integrated_gradients_path (string): Directory for saving images
+        m_steps (int): Number of steps for integral approximation
+        batch_size (int): Batch size for gradient computation
+
+    Returns:
+        integrated_gradients_image (numpy array): Integrated gradients visualization
+        save_path (string): File path for the saved image
+    '''
+
+    os.makedirs(integrated_gradients_path, exist_ok=True)
+
+    # Define baseline and interpolation steps
+    baseline = tf.zeros_like(images[0])
+    interpolation_steps = tf.linspace(0.0, 1.0, num=m_steps + 1)
+    gradient_store = tf.TensorArray(dtype=tf.float32, size=m_steps + 1)
+
+    def interpolate(baseline_img, target_img, alphas):
+        expanded_alphas = alphas[:, None, None, None]
+        delta = tf.expand_dims(target_img, axis=0) - tf.expand_dims(baseline_img, axis=0)
+        return tf.expand_dims(baseline_img, axis=0) + expanded_alphas * delta
+
+    def compute_grads(inputs, target_idx):
+        with tf.GradientTape() as tape:
+            tape.watch(inputs)
+            target_predictions = model(inputs)[:, target_idx]
+        return tape.gradient(target_predictions, inputs)
+
+    for start_idx in tf.range(0, len(interpolation_steps), batch_size):
+        end_idx = tf.minimum(start_idx + batch_size, len(interpolation_steps))
+        current_batch = interpolation_steps[start_idx:end_idx]
+
+        interpolated_images = interpolate(baseline, images[0], current_batch)
+        gradients = compute_grads(interpolated_images, prediction)
+
+        gradient_store = gradient_store.scatter(tf.range(start_idx, end_idx), gradients)
+
+    stacked_gradients = gradient_store.stack()
+
+    def approximate_integral(grads):
+        trapezoidal_grads = (grads[:-1] + grads[1:]) / 2.0
+        return tf.reduce_mean(trapezoidal_grads, axis=0)
+
+    def normalize(data):
+        return (data - tf.reduce_mean(data)) / (tf.math.reduce_std(data) + 1e-16)
+
+    averaged_gradients = approximate_integral(stacked_gradients)
+    normalized_gradients = normalize(averaged_gradients)
+
+    # Compute attribution
+    attributions = (images[0] - baseline) * normalized_gradients
+    attribution_map = tf.reduce_mean(tf.abs(attributions), axis=-1).numpy()
+    scaled_map = ((attribution_map - attribution_map.min()) / (attribution_map.max() - attribution_map.min()) * 255).astype('uint8')
+
+    # Create heatmap and overlay
+    heatmap = cv2.applyColorMap(scaled_map, cv2.COLORMAP_INFERNO)
+    original_img = (images[0] * 255).numpy().astype('uint8')
+    overlay = cv2.addWeighted(cv2.cvtColor(original_img, cv2.COLOR_RGB2BGR), 0.4, heatmap, 0.9, 0)
+
+    file_name = f"integrated_gradients_step_{step}_prediction_{prediction}.png"
+    save_path = os.path.join(integrated_gradients_path, file_name)
+
+    return overlay, save_path

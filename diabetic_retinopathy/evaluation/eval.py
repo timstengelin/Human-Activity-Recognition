@@ -59,5 +59,5 @@ def evaluate(model, ds_test, run_paths):
     # Perform deep visualization (for output of the first 3 images)
     for idx, (test_image, test_label) in enumerate(ds_test):
         visualize(model, test_image, test_label, idx, run_paths)
-        if idx >= 2:
+        if idx >= 1:
             break
