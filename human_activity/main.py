@@ -54,7 +54,6 @@ def main(argv):
         model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
 
     if train and not tune:
-        # TODO: Loss with zero labels
         # initialize Trainer class based on given model and datasets
         trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, run_paths=run_paths)
         for _ in trainer.train():
