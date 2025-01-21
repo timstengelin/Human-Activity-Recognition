@@ -132,12 +132,36 @@ def prepare_dataset(dataset, augmentation, batch_size, caching, repeat):
     def _normalize(image):
         return tf.cast(image, tf.float32) / 255.
 
+    class RandomChance(tf.keras.layers.Layer):
+        def __init__(self, layer, probability, **kwargs):
+            super(RandomChance, self).__init__(**kwargs)
+            self.layer = layer
+            self.probability = probability
+
+        def call(self, inputs, training=True):
+            apply_layer = tf.random.uniform([]) < self.probability
+            outputs = tf.cond(
+                pred=tf.logical_and(apply_layer, training),
+                true_fn=lambda: self.layer(inputs),
+                false_fn=lambda: tf.cast(inputs, dtype=tf.float32),
+            )
+            return outputs
+
+        def get_config(self):
+            config = super().get_config()
+            config.update(
+                {
+                    "layer": tf.keras.layers.serialize(self.layer),
+                    "probability": self.probability,
+                }
+            )
+            return config
     # keras model for data augmentation
     data_augmentation = tf.keras.Sequential([
-        tf.keras.layers.RandomFlip("horizontal_and_vertical"),
-        tf.keras.layers.RandomRotation(0.2),
-        tf.keras.layers.RandomContrast(factor=(0.1, 0.9)),
-        tf.keras.layers.RandomBrightness(factor=(0.0, 1.0))
+        RandomChance(tf.keras.layers.RandomFlip("horizontal_and_vertical"), 0.75),
+        RandomChance(tf.keras.layers.RandomRotation(0.5), 0.5)#,
+        # RandomChance(tf.keras.layers.RandomContrast(factor=(0.1, 0.9)), 0.2),
+        # RandomChance(tf.keras.layers.RandomBrightness(factor=(0.0, 1.0)), 0.2)
     ])
 
     if caching:
@@ -177,7 +201,7 @@ def load(load_record, img_dir, csv_dir, resampling, train_val_split, caching, ba
         create_record(img_dir=train_img_dir, csv_dir=train_csv_dir, filename_record=train_record_filename,
                       resampling=resampling)
         create_record(img_dir=test_img_dir, csv_dir=test_csv_dir, filename_record=test_record_filename,
-                      resampling=resampling)
+                      resampling=False)
 
         logging.info('Creation of new record files from dataset finished')
 
