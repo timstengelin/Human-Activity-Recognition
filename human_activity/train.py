@@ -5,7 +5,9 @@ import wandb
 import evaluation.metrics as metrics
 import numpy as np
 
-weight=np.array([1,1,1,1,1,1,5,5,5,5,5,5])
+# calculated weigths from class distribution in training labels
+weight=np.array([1., 1.06206897, 1.15789474, 1.01986755, 0.91666667, 0.93902439,
+                 11.84615385, 15.4, 9.625,11., 7.7, 11.])
 
 def crossentropy(labels, predictions, weights, *args, **kwargs):
     # scale predictions so that the class probas of each sample sum to 1
