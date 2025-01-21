@@ -24,3 +24,7 @@ load.tfrecord_files_exist = False # If false, TFRecord file are created for sele
 load.window_size = 250
 load.window_shift = 125
 load.batch_size = 64
+create_tfrecord_files.balance = False
+
+# Visualization
+visualization.range_time = [1000,20000]
