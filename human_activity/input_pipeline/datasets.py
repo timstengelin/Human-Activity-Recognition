@@ -5,6 +5,7 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 from scipy import stats
+from matplotlib import pyplot as plt
 
 @gin.configurable
 def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_size):
@@ -94,7 +95,7 @@ def load(name, data_dir, window_size, window_shift, tfrecord_files_exist, batch_
 
 
 @gin.configurable
-def create_tfrecord_files(data_dir, window_size, window_shift):
+def create_tfrecord_files(data_dir, window_size, window_shift, balance):
     '''
     Creates TFRecord files of original files
 
@@ -382,6 +383,18 @@ def create_tfrecord_files(data_dir, window_size, window_shift):
 
     # Define directory of TFRecord files
     data_dir_tfrecords = './input_pipeline/tfrecord_files/window_size_{}_shift_{}'.format(window_size, window_shift)
+
+    # Count labels in train dataset -> Balance
+    histo = np.histogram(train_labels, bins=np.arange(1, 14), density=True)
+    dist, classes = histo
+    dist = np.round(dist, decimals=3)
+    logging.info(f'Distribution of activity classes: {dist}')
+
+    # print histogram if configured
+    if balance:
+        plt.hist(train_labels, bins=np.arange(1,14), density=True)  # arguments are passed to np.histogram
+        plt.title("Histogram for activity class distribution")
+        plt.show()
 
     # Create a TensorFlow dataset from features and labels using a sliding window approach
     ds_train = create_tfrecord_dataset(train_features, train_labels, window_size, window_shift)
