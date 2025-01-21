@@ -51,7 +51,7 @@ def tune(run_paths, key):
     }
     # create wandb conf and obj
     sweep_config['parameters'] = parameters_dict
-    sweep_id = wandb.sweep(sweep=sweep_config, project="iss-dl15")
+    sweep_id = wandb.sweep(sweep=sweep_config, project="Activity Recognition HAPT")
 
 
     #actual tuning function
