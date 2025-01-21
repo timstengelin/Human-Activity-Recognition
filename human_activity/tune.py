@@ -22,12 +22,12 @@ def tune(run_paths, key):
     sweep_config['metric'] = metric
     parameters_dict = {
         'steps': {
-            'min': 200,
-            'max': 2000
+            'min': 500,
+            'max': 5000
         },
         'lr_rate': {
             'min': 0.00001,
-            'max': 0.001
+            'max': 0.01
         },
         'drop_rate': {
             'min': 0.1,
@@ -37,20 +37,16 @@ def tune(run_paths, key):
             'values': ["LSTM_model", "GRU_model", "RNN_model"]
         },
         'window_size': {
-            'min': 150,
-            'max': 500
+            'values': [125, 250, 375, 500]
         },
         'window_shift': {
-            'min': 0,
-            'max': 150
+            'values': [50, 75, 100, 125]
         },
         'batch_size': {
-            'min': 8,
-            'max': 128
+            'values': [8, 16, 32, 64, 128, 256]
         },
         'units': {
-            'min': 64,
-            'max': 256
+            'values': [8, 16, 32, 64]
         }
     }
     # create wandb conf and obj
@@ -103,7 +99,7 @@ def tune(run_paths, key):
                 continue
 
     # use agent for optimization
-    wandb.agent(sweep_id, function=tuning, count=200)
+    wandb.agent(sweep_id, function=tuning, count=50)
 
     # clear wandb job
     wandb.finish()
