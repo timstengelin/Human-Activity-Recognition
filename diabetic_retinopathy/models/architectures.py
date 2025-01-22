@@ -216,7 +216,7 @@ def efficientnet_b3_pretrained(input_shape, n_classes, trainable_rate=0.2, dropo
 
     # Build the EfficientNetB3 model with transfer learning
     base_model = tf.keras.applications.EfficientNetB3(include_top=False, weights='imagenet', input_shape=input_shape,
-                                                      pooling=None)
+                                                      pooling=None, classifier_activation=None)
 
     # Fine tune from this layer onwards
     fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
@@ -260,7 +260,7 @@ def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_r
 
     # Build the DenseNet201 model with transfer learning
     base_model = tf.keras.applications.DenseNet201(include_top=False, weights='imagenet', input_shape=input_shape,
-                                                   pooling=None)
+                                                   pooling=None, classifier_activation=None)
 
     # Fine tune from this layer onwards
     fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
@@ -304,7 +304,7 @@ def resnet50_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate
 
     # Build the ResNet50 model with transfer learning
     base_model = tf.keras.applications.ResNet50(include_top=False, weights='imagenet', input_shape=input_shape,
-                                                pooling=None)
+                                                pooling=None, classifier_activation=None)
 
     # Fine tune from this layer onwards
     fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
