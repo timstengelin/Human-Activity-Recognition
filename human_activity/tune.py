@@ -34,7 +34,7 @@ def tune(run_paths, key):
             'max': 0.5
         },
         'model': {
-            'values': ["LSTM_model", "GRU_model", "RNN_model"]
+            'values': ["LSTM_model", "GRU_model", "bidi_LSTM_model"]
         },
         'window_size': {
             'values': [125, 250, 375, 500]
