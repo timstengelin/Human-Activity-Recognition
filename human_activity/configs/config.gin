@@ -5,6 +5,8 @@ gru_architecture.dropout_rate = 0.15
 gru_architecture.units = 64
 rnn_architecture.dropout_rate = 0.15
 rnn_architecture.units = 64
+bidi_lstm_architecture.dropout_rate = 0.30
+bidi_lstm_architecture.units = 64
 
 # Training
 Trainer.total_steps = 1e3
