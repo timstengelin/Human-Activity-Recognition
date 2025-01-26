@@ -63,6 +63,7 @@ def main(argv):
     elif tune and not train:
         tuning.tune(run_paths)
     else:
+        utils_misc.set_loggers(run_paths['path_logs_tune'], logging.INFO)
         utils_misc.set_loggers(run_paths['path_logs_eval'], logging.INFO)
         evaluate(model=model,
                  ds_test=ds_test,
