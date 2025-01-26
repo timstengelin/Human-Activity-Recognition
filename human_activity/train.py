@@ -189,6 +189,7 @@ def create_model(model_name, feature_shape, label_shape):
         model = architectures.gru_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
     elif model_name == "RNN_model":
         model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    return model
 @gin.configurable
 def training(run_paths, model_name):
     # set logger for training
