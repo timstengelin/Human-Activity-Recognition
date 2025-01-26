@@ -4,6 +4,9 @@ import logging
 import wandb
 import evaluation.metrics as metrics
 import numpy as np
+from utils import utils_misc
+from input_pipeline import datasets
+import models.architectures as architectures
 
 # calculated weigths from class distribution in training labels
 weight=np.array([1., 1.06206897, 1.15789474, 1.01986755, 0.91666667, 0.93902439,
@@ -176,3 +179,40 @@ class Trainer(object):
                     self.ckpt_manager.save()
                     logging.info(f'Finished training after {step} steps.')
                 return self.val_accuracy.result().numpy()
+
+def create_model(model_name, feature_shape, label_shape):
+    if model_name == "LSTM_model":
+        model = architectures.lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "bidi_LSTM_model":
+        model = architectures.bidi_lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "GRU_model":
+        model = architectures.gru_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "RNN_model":
+        model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+@gin.configurable
+def training(run_paths, model_name):
+    # set logger for training
+    utils_misc.set_loggers(run_paths['path_logs_train'], logging.INFO)
+
+    # call of data pipeline to retrieve train, validation and test dataset
+    ds_train, ds_val, ds_test, ds_info = datasets.load()
+
+    # step for single class per sequence (sequence2oneLabel)
+    # ds_train = ds_train.map(lambda x, y: (x, tf.reduce_mean(y, axis=1)))
+    # ds_val = ds_val.map(lambda x, y: (x, tf.reduce_mean(y, axis=1)))
+    # ds_test = ds_test.map(lambda x, y: (x, tf.reduce_mean(y, axis=1)))
+
+    # get shape from actual dataset
+    feature_shape = None
+    label_shape = None
+    for data, label in ds_train:
+        feature_shape = data.shape[1:]
+        label_shape = label.shape[1:]
+        break
+
+    model = create_model(model_name=model_name, feature_shape=feature_shape, label_shape=label_shape)
+
+    # initialize Trainer class based on given model and datasets
+    trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, run_paths=run_paths)
+    for _ in trainer.train():
+        continue
