@@ -83,3 +83,30 @@ def rnn_architecture(input_shape, n_classes, dropout_rate, units):
     out = custom_layers.basic_dense_layer(inputs=out, units=n_classes, activation='softmax')
 
     return tf.keras.Model(inputs=inputs, outputs=out, name='RNN_model')
+
+@gin.configurable
+def bidi_lstm_architecture(input_shape, n_classes, dropout_rate, units):
+    """A bidirectional LSTM architecture
+
+        Parameters:
+            inputs (list): input dimensions of the model
+            n_classes (int): number of one-hot encoded classes
+            dropout_rate (float): dropout rate
+
+        Returns:
+            (model): tensorflow keras model with given dimensions
+    """
+    inputs = tf.keras.Input(input_shape)
+    out = custom_layers.bidirectional_lstm_layer(inputs=inputs, units=int(units*2), return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=int(units))
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
+    out = custom_layers.bidirectional_lstm_layer(inputs=inputs, units=int(units), return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=int(units/2))
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
+    out = custom_layers.bidirectional_lstm_layer(inputs=out, units=int(units/2), return_sequences=True)
+    out = custom_layers.basic_dense_layer(inputs=out, units=int(units/4))
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
+
+    out = custom_layers.basic_dense_layer(inputs=out, units=n_classes, activation="softmax")
+
+    return tf.keras.Model(inputs=inputs, outputs=out, name='bidi_LSTM_model')

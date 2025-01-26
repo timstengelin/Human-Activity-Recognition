@@ -50,10 +50,9 @@ def evaluate(model, ds_test, run_paths, n_classes):
     array = conf_matrix.result().numpy()
     # normalize confusion matrix
     array = np.around(array.astype('float') / (array.sum(axis=1))[:, np.newaxis], decimals=2)
-    plt.title("Confusion matrix")
     df_cm = pd.DataFrame(array, index=[i for i in classes],
                          columns=[i for i in classes])
     plt.figure(figsize=(10, 7))
+    plt.title("Confusion matrix")
     sn.heatmap(df_cm, annot=True)
-    # plt.show()
     plt.savefig(os.path.join(run_paths['path_board_val'], 'confusion_matrix.png'))

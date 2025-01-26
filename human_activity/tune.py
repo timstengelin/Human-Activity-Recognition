@@ -7,9 +7,11 @@ import models.architectures as architectures
 
 import wandb
 
-wandb.login(key="8478ddb0f2c0978283abcb1e18db08bebd904d3f")
+@gin.configurable
+def tune(run_paths, key):
+    # wandb login with given key
+    wandb.login(key=key)
 
-def tune(run_paths):
     sweep_config = {
         'method': 'random'
     }
@@ -20,44 +22,40 @@ def tune(run_paths):
     sweep_config['metric'] = metric
     parameters_dict = {
         'steps': {
-            'min': 200,
-            'max': 2000
+            'min': 500,
+            'max': 5000
         },
         'lr_rate': {
             'min': 0.00001,
-            'max': 0.001
+            'max': 0.01
         },
         'drop_rate': {
             'min': 0.1,
             'max': 0.5
         },
         'model': {
-            'values': ["LSTM_model", "GRU_model", "RNN_model"]
+            'values': ["LSTM_model", "GRU_model", "bidi_LSTM_model"]
         },
         'window_size': {
-            'min': 150,
-            'max': 500
+            'values': [125, 250, 375, 500]
         },
         'window_shift': {
-            'min': 0,
-            'max': 150
+            'values': [50, 75, 100, 125]
         },
         'batch_size': {
-            'min': 8,
-            'max': 128
+            'values': [8, 16, 32, 64, 128, 256]
         },
         'units': {
-            'min': 64,
-            'max': 256
+            'values': [8, 16, 32, 64]
         }
     }
+    # create wandb conf and obj
     sweep_config['parameters'] = parameters_dict
-
-    sweep_id = wandb.sweep(sweep=sweep_config, project="iss-dl15")
-
+    sweep_id = wandb.sweep(sweep=sweep_config, project="Activity Recognition HAPT")
 
 
-    def func():
+    #actual tuning function
+    def tuning():
         config = {
             'steps': 50,
             'lr_rate': 0.01,
@@ -100,6 +98,8 @@ def tune(run_paths):
             for _ in trainer.train():
                 continue
 
-    wandb.agent(sweep_id, function=func, count=200)
+    # use agent for optimization
+    wandb.agent(sweep_id, function=tuning, count=50)
 
+    # clear wandb job
     wandb.finish()

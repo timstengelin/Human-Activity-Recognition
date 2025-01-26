@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 class ConfusionMatrix(tf.keras.metrics.Metric):
 
@@ -29,18 +30,25 @@ class Categorical_Accuracy(tf.keras.metrics.Metric):
         super(Categorical_Accuracy, self).__init__(name=name, **kwargs)
         # initialize parameters
         self.accuracy = self.add_weight(name='categorical_accuracy', initializer='zeros')
+        self.count = self.add_weight(name='count', initializer='zeros')
 
     def update_state(self, labels, predictions, *args, **kwargs):
         # get highest rated class
-        labels = tf.argmax(labels, axis=-1)
-        predictions = tf.argmax(predictions, axis=-1)
+        labels = tf.reshape(tf.argmax(tf.cast(labels, dtype=tf.float32), axis=-1), [-1])
+        predictions = tf.reshape(tf.argmax(tf.cast(predictions, dtype=tf.float32), axis=-1), [-1])
+
+        # delete the samples without classification
+        index = tf.where(labels != 0)
+        label_clean = tf.gather(labels, index)
+        prediction_clean = tf.gather(predictions, index)
 
         # compare true and predicted
-        acc = tf.cast(tf.equal(labels, predictions), dtype=tf.float32)
+        acc = tf.cast(tf.equal(label_clean, prediction_clean), dtype=tf.float32)
 
-        # reduce to one value over all timesteps and entries
-        self.accuracy = tf.reduce_mean(acc)
+        # reduce to one value entry
+        self.accuracy.assign_add(tf.reduce_mean(acc))
+        self.count.assign_add(1)
 
     def result(self):
         # return parameters
-        return self.accuracy
+        return self.accuracy/self.count

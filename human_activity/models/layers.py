@@ -80,3 +80,22 @@ def basic_RNN_layer(inputs, units, return_sequences=True, batch_norm=True, activ
         out = tf.keras.layers.BatchNormalization()(out)
     out = tf.keras.layers.Activation(activation)(out)
     return out
+
+def bidirectional_lstm_layer(inputs, units, return_sequences=True, batch_norm=True, activation="tanh"):
+    """A basic single LSTM layer
+
+        Parameters:
+            inputs (Tensor): input of the LSTM layer
+            units (int): number of filters used for the LSTM layer
+            return_sequences (bool): whether output is sequence or not (Default is True)
+            batch_norm (bool): whether the batch normalization is used or not (Default is True)
+            activation (string): which activation function to use (Default is "tanh")
+
+        Returns:
+            (Tensor): output of the single LSTM layer
+    """
+    out = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units=units, return_sequences=return_sequences))(inputs)
+    if batch_norm:
+        out = tf.keras.layers.BatchNormalization()(out)
+    out = tf.keras.layers.Activation(activation)(out)
+    return out
