@@ -13,6 +13,10 @@ Trainer.total_steps = 1e3
 Trainer.log_interval = 1e1
 Trainer.ckpt_interval = 1e2
 Trainer.learning_rate = 1e-4
+training.model_name = "LSTM_model"
+
+# Evaluation
+evaluation.model_name = "LSTM_model"
 
 # Folder/Path generation
 gen_run_folder.path_model_id = 'GRU_model'
@@ -33,3 +37,6 @@ visualization.range_time = [1000,20000]
 
 # Tuning
 tune.key = '8478ddb0f2c0978283abcb1e18db08bebd904d3f'
+
+train_tune.tune = False
+train_tune.evaluate = False
