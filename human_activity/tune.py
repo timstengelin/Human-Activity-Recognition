@@ -4,11 +4,13 @@ import gin
 from train import Trainer
 import input_pipeline.datasets as datasets
 import models.architectures as architectures
+from utils import utils_misc
 
 import wandb
 
 @gin.configurable
 def tune(run_paths, key):
+    utils_misc.set_loggers(run_paths['path_logs_tune'], logging.INFO)
     # wandb login with given key
     wandb.login(key=key)
 
