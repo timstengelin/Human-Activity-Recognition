@@ -1,4 +1,4 @@
-# ---------- CONFIGURATION OF MAIN FUNCTIONALITY ----------
+# ---------- MAIN FUNCTIONALITY ----------
 
 main_logic.model_names = ['MobileNetV2']
     # Sets the name of the model to be worked with
