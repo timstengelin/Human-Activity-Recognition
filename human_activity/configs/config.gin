@@ -13,6 +13,8 @@ Trainer.total_steps = 1e3
 Trainer.log_interval = 1e1
 Trainer.ckpt_interval = 1e2
 Trainer.learning_rate = 1e-4
+Trainer.class_weight = [1., 1.06206897, 1.15789474, 1.01986755, 0.91666667, 0.93902439, 11.84615385, 15.4, 9.625,11., 7.7, 11.]
+
 training.model_name = "LSTM_model"
 
 # Evaluation
@@ -38,5 +40,35 @@ visualization.range_time = [1000,20000]
 # Tuning
 tune.key = '8478ddb0f2c0978283abcb1e18db08bebd904d3f'
 
-train_tune.tune = False
+train_tune.tune = True
 train_tune.evaluate = False
+
+tune.parameters_dict = {
+        'steps': {
+            'min': 500,
+            'max': 5000
+        },
+        'lr_rate': {
+            'min': 0.00001,
+            'max': 0.001
+        },
+        'drop_rate': {
+            'min': 0.1,
+            'max': 0.9
+        },
+        'model': {
+            'values': ["LSTM_model", "GRU_model", "bidi_LSTM_model"]
+        },
+        'window_size': {
+            'values': [125, 250, 375]
+        },
+        'window_shift': {
+            'values': [50, 75, 100, 125]
+        },
+        'batch_size': {
+            'values': [8, 16, 32, 64, 128, 256]
+        },
+        'units': {
+            'values': [32, 64, 128]
+        }
+    }
