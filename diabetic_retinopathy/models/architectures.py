@@ -5,7 +5,7 @@ from models.layers import *
 
 
 @gin.configurable
-def mobilenet_v2(input_shape, n_classes, alpha=1.0, dropout_rate=0.2):
+def mobilenet_v2(input_shape=(256, 256, 3), n_classes=2, alpha=1.0, dropout_rate=0.2):
     '''
     Defines the MobileNetV2 architecture
 
@@ -57,7 +57,7 @@ def mobilenet_v2(input_shape, n_classes, alpha=1.0, dropout_rate=0.2):
 
 
 @gin.configurable
-def efficientnet_b0(input_shape, n_classes, width_coefficient=1.0, depth_coefficient=1.0, dropout_rate=0.2):
+def efficientnet_b0(input_shape=(256, 256, 3), n_classes=2, width_coefficient=1.0, depth_coefficient=1.0, dropout_rate=0.2):
     '''
     Defines the EfficientNetB0 architecture
 
@@ -112,7 +112,7 @@ def efficientnet_b0(input_shape, n_classes, width_coefficient=1.0, depth_coeffic
 
 
 @gin.configurable
-def efficientnet_b3_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
+def efficientnet_b3_pretrained(input_shape=(256, 256, 3), n_classes=2, trainable_rate=0.2, dropout_rate=0.2):
     '''
     Defines a pretrained EfficientNetB3 architecture
 
@@ -158,7 +158,7 @@ def efficientnet_b3_pretrained(input_shape, n_classes, trainable_rate=0.2, dropo
 
 
 @gin.configurable
-def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
+def densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2, trainable_rate=0.2, dropout_rate=0.2):
     '''
     Defines a pretrained DenseNet201 architecture
 
@@ -204,7 +204,7 @@ def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_r
 
 
 @gin.configurable
-def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(input_shape, n_classes):
+def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(input_shape=(256, 256, 3), n_classes=2):
     '''
     Defines an ensemble of MobileNetV2, EfficientNetB0, EfficientNetB3 and DenseNet201
 
