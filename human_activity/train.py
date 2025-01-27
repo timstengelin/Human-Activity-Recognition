@@ -13,18 +13,13 @@ from evaluation.metrics import crossentropy
 class Trainer(object):
     def __init__(self, model, ds_train, ds_val, learning_rate, run_paths,
                  total_steps, log_interval, ckpt_interval, class_weight, tuning=False):
-        # Loss objective
-        # self.loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
-        # self.loss_object = crossentropy()
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
         # Metrics
         self.train_loss = tf.keras.metrics.Mean(name='train_loss')
-        # self.train_accuracy = tf.keras.metrics.CategoricalAccuracy(name='train_accuracy')
         self.train_accuracy = metrics.Categorical_Accuracy()
 
         self.val_loss = tf.keras.metrics.Mean(name='val_loss')
-        # self.val_accuracy = tf.keras.metrics.CategoricalAccuracy(name='val_accuracy')
         self.val_accuracy = metrics.Categorical_Accuracy()
 
         # attributes
@@ -64,7 +59,6 @@ class Trainer(object):
             # training=True is only needed if there are layers with different
             # behavior during training versus inference (e.g. Dropout).
             predictions = self.model(data, training=True)
-            # loss = self.loss_object(labels, predictions, sample_weight=sample_weight)
             loss = crossentropy(labels, predictions, self.class_weight)
         gradients = tape.gradient(loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
@@ -86,7 +80,6 @@ class Trainer(object):
         # training=False is only needed if there are layers with different
         # behavior during training versus inference (e.g. Dropout).
         predictions = self.model(data, training=False)
-        # t_loss = self.loss_object(labels, predictions, sample_weight=sample_weight)
         t_loss = crossentropy(labels, predictions, self.class_weight)
 
         self.val_loss(t_loss)
