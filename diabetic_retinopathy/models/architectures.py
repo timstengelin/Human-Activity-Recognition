@@ -5,42 +5,7 @@ from models.layers import *
 
 
 @gin.configurable
-def le_net(input_shape, n_classes):
-    '''
-    Defines the LeNet architecture
-
-    Args:
-        input_shape (tuple): Shape of the input tensor
-        n_classes (int): Number of output classes
-
-    Returns:
-        (tf.keras.Model): LeNet model
-    '''
-
-    # Input layer
-    inputs = tf.keras.Input(shape=input_shape)
-
-    # Normalize input data
-    rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1. / 255.0)(inputs)
-
-    # LeNet layers
-    x = tf.keras.layers.Conv2D(6, (5, 5), activation='tanh', padding='valid')(rescale)
-    x = tf.keras.layers.AveragePooling2D(pool_size=(2, 2), strides=2)(x)
-
-    x = tf.keras.layers.Conv2D(16, (5, 5), activation='tanh', padding='valid')(x)
-    x = tf.keras.layers.AveragePooling2D(pool_size=(2, 2), strides=2)(x)
-
-    x = tf.keras.layers.Flatten()(x)
-    x = tf.keras.layers.Dense(120, activation='tanh')(x)
-    x = tf.keras.layers.Dense(84, activation='tanh')(x)
-
-    outputs = tf.keras.layers.Dense(units=n_classes, activation='sigmoid')(x)
-
-    return tf.keras.Model(inputs=inputs, outputs=outputs, name='lenet')
-
-
-@gin.configurable
-def mobilenet_v2(input_shape, n_classes, alpha=1.0, dropout_rate=0.2):
+def mobilenet_v2(input_shape=(256, 256, 3), n_classes=2, alpha=1.0, dropout_rate=0.2):
     '''
     Defines the MobileNetV2 architecture
 
@@ -79,17 +44,20 @@ def mobilenet_v2(input_shape, n_classes, alpha=1.0, dropout_rate=0.2):
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU(6.0)(x)
 
+    # Identity layer for deep visualization
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
+
     # Global average pooling, dropout, and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobilenet_v2')
 
 
 
 @gin.configurable
-def efficientnet_b0(input_shape, n_classes, width_coefficient=1.0, depth_coefficient=1.0, dropout_rate=0.2):
+def efficientnet_b0(input_shape=(256, 256, 3), n_classes=2, width_coefficient=1.0, depth_coefficient=1.0, dropout_rate=0.2):
     '''
     Defines the EfficientNetB0 architecture
 
@@ -132,57 +100,19 @@ def efficientnet_b0(input_shape, n_classes, width_coefficient=1.0, depth_coeffic
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
 
+    # Identity layer for deep visualization
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
+
     # Global average pooling, dropout, and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
-    return tf.keras.Model(inputs=inputs, outputs=outputs) #, name='efficientnet_b0' #TODO
-
-
-@gin.configurable
-def mobilenet_v2_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
-    '''
-    Defines a pretrained MobileNetV2 architecture
-
-    Args:
-        input_shape (tuple): Shape of the input tensor (height, width, channels)
-        n_classes (int): Number of output classes
-        trainable_rate (float): proportion of trainable parameters in the feature extraction module
-        dropout_rate (float): Dropout rate for the top layer
-
-    Returns:
-        (tf.keras.Model): MobileNetV2 model
-    '''
-
-    # Input layer
-    inputs = tf.keras.Input(shape=input_shape)
-
-    # Preprocess input data
-    prep_inputs = tf.keras.applications.mobilenet_v2.preprocess_input(inputs)
-
-    # Build the MobileNetV2 model with transfer learning
-    base_model = tf.keras.applications.MobileNetV2(include_top=False, weights='imagenet', input_shape=input_shape,
-                                                   pooling=None)
-
-    # Fine tune from this layer onwards
-    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
-    # Freeze all the layers before the 'fine_tune_at' layer
-    for layer in base_model.layers[:fine_tune_at]:
-        layer.trainable = False
-
-    x = base_model(prep_inputs)
-
-    # Global average pooling and dense output
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
-
-    return tf.keras.Model(inputs=inputs, outputs=outputs, name='mobilenet_v2_pretrained')
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='efficientnet_b0')
 
 
 @gin.configurable
-def efficientnet_b3_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
+def efficientnet_b3_pretrained(input_shape=(256, 256, 3), n_classes=2, trainable_rate=0.2, dropout_rate=0.2):
     '''
     Defines a pretrained EfficientNetB3 architecture
 
@@ -196,34 +126,39 @@ def efficientnet_b3_pretrained(input_shape, n_classes, trainable_rate=0.2, dropo
         (tf.keras.Model): EfficientNetB3 model
     '''
 
-    # Input layer
+    # Define input layer
     inputs = tf.keras.Input(shape=input_shape)
 
     # Preprocess input data
-    prep_inputs = tf.keras.applications.efficientnet.preprocess_input(inputs)
+    preprocessed_inputs = tf.keras.applications.efficientnet.preprocess_input(inputs)
 
-    # Build the EfficientNetB3 model with transfer learning
+    # Build EfficientNetB3 model
     base_model = tf.keras.applications.EfficientNetB3(include_top=False, weights='imagenet', input_shape=input_shape,
-                                                      pooling=None)
+                                                      pooling=None, classifier_activation=None)
 
-    # Fine tune from this layer onwards
-    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
-    # Freeze all the layers before the 'fine_tune_at' layer
-    for layer in base_model.layers[:fine_tune_at]:
-        layer.trainable = False
+    # Determine layers to freeze
+    last_nontrainable_layer = len(base_model.layers) - int(len(base_model.layers) * trainable_rate)
 
-    x = base_model(prep_inputs)
+    # Freeze layers up to the fine-tune index
+    for lay in base_model.layers[:last_nontrainable_layer]:
+        lay.trainable = False
+
+    # Pass preprocessed inputs through base model
+    x = base_model(preprocessed_inputs)
+
+    # Apply identity activation
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
 
     # Global average pooling and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='efficientnet_b3_pretrained')
 
 
 @gin.configurable
-def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
+def densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2, trainable_rate=0.2, dropout_rate=0.2):
     '''
     Defines a pretrained DenseNet201 architecture
 
@@ -237,77 +172,41 @@ def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_r
         (tf.keras.Model): DenseNet201 model
     '''
 
-    # Input layer
+    # Define input layer
     inputs = tf.keras.Input(shape=input_shape)
 
     # Preprocess input data
-    prep_inputs = tf.keras.applications.densenet.preprocess_input(inputs)
+    preprocessed_inputs = tf.keras.applications.densenet.preprocess_input(inputs)
 
-    # Build the DenseNet201 model with transfer learning
+    # Build DenseNet201 model
     base_model = tf.keras.applications.DenseNet201(include_top=False, weights='imagenet', input_shape=input_shape,
-                                                   pooling=None)
+                                                   pooling=None, classifier_activation=None)
 
-    # Fine tune from this layer onwards
-    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
-    # Freeze all the layers before the 'fine_tune_at' layer
-    for layer in base_model.layers[:fine_tune_at]:
-        layer.trainable = False
+    # Determine layers to freeze
+    last_nontrainable_layer = len(base_model.layers) - int(len(base_model.layers) * trainable_rate)
 
-    x = base_model(prep_inputs)
+    # Freeze layers up to the fine-tune index
+    for lay in base_model.layers[:last_nontrainable_layer]:
+        lay.trainable = False
+
+    # Pass preprocessed inputs through base model
+    x = base_model(preprocessed_inputs)
+
+    # Apply identity activation
+    x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
 
     # Global average pooling and dense output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
     return tf.keras.Model(inputs=inputs, outputs=outputs, name='densenet201_pretrained')
 
 
 @gin.configurable
-def resnet50_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate=0.2):
+def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(input_shape=(256, 256, 3), n_classes=2):
     '''
-    Defines a pretrained ResNet50 architecture
-
-    Args:
-        input_shape (tuple): Shape of the input tensor (height, width, channels)
-        n_classes (int): Number of output classes
-        trainable_rate (float): proportion of trainable parameters in the feature extraction module
-        dropout_rate (float): Dropout rate for the top layer
-
-    Returns:
-        (tf.keras.Model): ResNet50 model
-    '''
-
-    # Input layer
-    inputs = tf.keras.Input(shape=input_shape)
-
-    # Preprocess input data
-    prep_inputs = tf.keras.applications.resnet50.preprocess_input(inputs)
-
-    # Build the ResNet50 model with transfer learning
-    base_model = tf.keras.applications.ResNet50(include_top=False, weights='imagenet', input_shape=input_shape,
-                                                pooling=None)
-
-    # Fine tune from this layer onwards
-    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
-    # Freeze all the layers before the 'fine_tune_at' layer
-    for layer in base_model.layers[:fine_tune_at]:
-        layer.trainable = False
-
-    x = base_model(prep_inputs)
-
-    # Global average pooling and dense output
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
-
-    return tf.keras.Model(inputs=inputs, outputs=outputs, name='resnet50_pretrained')
-
-
-@gin.configurable
-def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b0(input_shape, n_classes):
-    '''
-    Defines an ensemble of MobileNetV2, EfficientNetB0 and EfficientNetB0
+    Defines an ensemble of MobileNetV2, EfficientNetB0, EfficientNetB3 and DenseNet201
 
     Args:
         input_shape (tuple): Shape of the input tensor (height, width, channels)
@@ -320,7 +219,8 @@ def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b0(input_shape, n_classes)
     # Define models
     models = [mobilenet_v2(input_shape=(256, 256, 3), n_classes=2),
               efficientnet_b0(input_shape=(256, 256, 3), n_classes=2),
-              efficientnet_b0(input_shape=(256, 256, 3), n_classes=2)]
+              efficientnet_b0(input_shape=(256, 256, 3), n_classes=2),
+              densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2)]
 
     # Input layer of ensemble model
     ensemble_input = tf.keras.Input(shape=input_shape)
@@ -339,4 +239,4 @@ def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b0(input_shape, n_classes)
 
     return tf.keras.Model(inputs=ensemble_input,
                           outputs=combined_output,
-                          name='mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b0')
+                          name='mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201')

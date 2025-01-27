@@ -11,18 +11,7 @@ wandb.login(key="c9cea4bca2336afb9f6eb8e774600fc4ec87b11a")
 
 # Function to get sweep config, metric, and parameter dictionary based on model selection
 def get_sweep_config(model_name):
-    if model_name == 'LeNet':
-        sweep_config = {
-            'method': 'grid', # 'grid' for grid search, 'random' for random search
-            'metric': {'name': 'acc_val', 'goal': 'maximize'},
-            'parameters': {
-                'learning_rate': {'values': [1e-3, 5e-4, 1e-4]},
-                'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [15000]},
-                'augmentation': {'values': [False, True]}
-            }
-        }
-    elif model_name == 'MobileNetV2':
+    if model_name == 'MobileNetV2':
         sweep_config = {
             'method': 'grid', # 'grid' for grid search, 'random' for random search
             'metric': {'name': 'acc_val', 'goal': 'maximize'},
@@ -48,29 +37,16 @@ def get_sweep_config(model_name):
                 'augmentation': {'values': [True]}
             }
         }
-    elif model_name == 'MobileNetV2_pretrained':
-        sweep_config = {
-            'method': 'grid', # 'grid' for grid search, 'random' for random search
-            'metric': {'name': 'acc_val', 'goal': 'maximize'},
-            'parameters': {
-                'trainable_rate': {'values': [0.1, 0.35, 0.6]},
-                'dropout_rate': {'values': [0.2, 0.4]},
-                'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
-                'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [50000]},
-                'augmentation': {'values': [True]}
-            }
-        }
     elif model_name == 'EfficientNetB3_pretrained':
         sweep_config = {
             'method': 'grid', # 'grid' for grid search, 'random' for random search
             'metric': {'name': 'acc_val', 'goal': 'maximize'},
             'parameters': {
-                'trainable_rate': {'values': [0.1, 0.35, 0.6]},
-                'dropout_rate': {'values': [0.2, 0.4]},
-                'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
-                'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [50000]},
+                'trainable_rate': {'values': [1]},
+                'dropout_rate': {'values': [0.2]},
+                'learning_rate': {'values': [1e-4, 1e-5]},
+                'batch_size': {'values': [32]},
+                'total_steps': {'values': [7500]},
                 'augmentation': {'values': [True]}
             }
         }
@@ -79,24 +55,11 @@ def get_sweep_config(model_name):
             'method': 'grid', # 'grid' for grid search, 'random' for random search
             'metric': {'name': 'acc_val', 'goal': 'maximize'},
             'parameters': {
-                'trainable_rate': {'values': [0.1, 0.35, 0.6]},
-                'dropout_rate': {'values': [0.2, 0.4]},
-                'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
-                'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [50000]},
-                'augmentation': {'values': [True]}
-            }
-        }
-    elif model_name == 'ResNet50_pretrained':
-        sweep_config = {
-            'method': 'grid',
-            'metric': {'name': 'acc_val', 'goal': 'maximize'},
-            'parameters': {
-                'trainable_rate': {'values': [0.1, 0.35, 0.6]},
-                'dropout_rate': {'values': [0.2, 0.4]},
-                'learning_rate': {'values': [1e-4, 5e-5, 1e-5]},
-                'batch_size': {'values': [8, 16, 32]},
-                'total_steps': {'values': [50000]},
+                'trainable_rate': {'values': [1]},
+                'dropout_rate': {'values': [0.2]},
+                'learning_rate': {'values': [1e-4, 1e-5]},
+                'batch_size': {'values': [32]},
+                'total_steps': {'values': [7500]},
                 'augmentation': {'values': [True]}
             }
         }
@@ -127,40 +90,19 @@ def tune(run_paths, model_name):
                                                       augmentation=config.augmentation)
 
             # Model selection based on the chosen model name
-            if model_name == 'LeNet':
-                model = le_net(input_shape=(256, 256, 3),
-                               n_classes=2)
-            elif model_name == 'MobileNetV2':
-                model = mobilenet_v2(input_shape=(256, 256, 3),
-                                     n_classes=2,
-                                     alpha=config.alpha,
+            if model_name == 'MobileNetV2':
+                model = mobilenet_v2(alpha=config.alpha,
                                      dropout_rate=config.dropout_rate)
             elif model_name == 'EfficientNetB0':
-                model = efficientnet_b0(input_shape=(256, 256, 3),
-                                        n_classes=2,
-                                        width_coefficient=config.width_and_depth_coefficient,
+                model = efficientnet_b0(width_coefficient=config.width_and_depth_coefficient,
                                         depth_coefficient=config.width_and_depth_coefficient,
                                         dropout_rate=config.dropout_rate)
-            elif model_name == 'MobileNetV2_pretrained':
-                model = mobilenet_v2_pretrained(input_shape=(256, 256, 3),
-                                                n_classes=2,
-                                                trainable_rate=config.trainable_rate,
-                                                dropout_rate=config.dropout_rate)
             elif model_name == 'EfficientNetB3_pretrained':
-                model = densenet201_pretrained(input_shape=(256, 256, 3),
-                                               n_classes=2,
-                                               trainable_rate=config.trainable_rate,
+                model = densenet201_pretrained(trainable_rate=config.trainable_rate,
                                                dropout_rate=config.dropout_rate)
             elif model_name == 'DenseNet201_pretrained':
-                model = densenet201_pretrained(input_shape=(256, 256, 3),
-                                               n_classes=2,
-                                               trainable_rate=config.trainable_rate,
+                model = densenet201_pretrained(trainable_rate=config.trainable_rate,
                                                dropout_rate=config.dropout_rate)
-            elif model_name == 'ResNet50_pretrained':
-                model = resnet50_pretrained(input_shape=(256, 256, 3),
-                                            n_classes=2,
-                                            trainable_rate=config.trainable_rate,
-                                            dropout_rate=config.dropout_rate)
 
             # Initialize Trainer
             trainer = Trainer(model=model,

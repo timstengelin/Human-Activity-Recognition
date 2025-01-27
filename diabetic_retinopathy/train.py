@@ -39,7 +39,7 @@ class Trainer(object):
         if not tuning:
             self.ckpt_manager = tf.train.CheckpointManager(checkpoint=self.ckpt,
                                                         directory=self.run_paths["path_ckpts_train"],
-                                                        max_to_keep=1)
+                                                        max_to_keep=10)
 
 
     @tf.function

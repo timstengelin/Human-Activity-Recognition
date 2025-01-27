@@ -22,9 +22,10 @@ def create_ensemble_model(models, run_paths):
     path_model_root = os.path.abspath(os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, '05_Workspace', 'experiments'))
     helper_path_list = [
-        os.path.join(path_model_root, 'mobilenet_V2_withAug_lr1e-3_GOOD', 'ckpts'),
-        os.path.join(path_model_root, 'efficientnet_B0_withAug_lr1e-3_GOOD', 'ckpts'),
-        os.path.join(path_model_root, 'efficientnet_B0_withAug_lr1e-3_GOOD', 'ckpts')]
+        os.path.join(path_model_root, 'mobilenetv2_withAug', 'ckpts'),
+        os.path.join(path_model_root, 'efficientnetb0_withAug', 'ckpts'),
+        os.path.join(path_model_root, 'efficientnetb3', 'ckpts'),
+        os.path.join(path_model_root, 'densenet201', 'ckpts')]
 
     # Log message
     logging.info('Start combining the given models into an ensemble model')
