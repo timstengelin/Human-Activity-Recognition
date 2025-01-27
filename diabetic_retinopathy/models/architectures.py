@@ -146,7 +146,7 @@ def efficientnet_b0(input_shape, n_classes, width_coefficient=1.0, depth_coeffic
     x = tf.keras.layers.Dropout(dropout_rate)(x)
     outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='output')(x)
 
-    return tf.keras.Model(inputs=inputs, outputs=outputs) #, name='efficientnet_b0' #TODO
+    return tf.keras.Model(inputs=inputs, outputs=outputs, name='efficientnet_b0')
 
 
 @gin.configurable
@@ -326,9 +326,9 @@ def resnet50_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_rate
 
 
 @gin.configurable
-def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b0(input_shape, n_classes):
+def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(input_shape, n_classes):
     '''
-    Defines an ensemble of MobileNetV2, EfficientNetB0 and EfficientNetB0
+    Defines an ensemble of MobileNetV2, EfficientNetB0, EfficientNetB3 and DenseNet201
 
     Args:
         input_shape (tuple): Shape of the input tensor (height, width, channels)
@@ -341,7 +341,8 @@ def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b0(input_shape, n_classes)
     # Define models
     models = [mobilenet_v2(input_shape=(256, 256, 3), n_classes=2),
               efficientnet_b0(input_shape=(256, 256, 3), n_classes=2),
-              efficientnet_b0(input_shape=(256, 256, 3), n_classes=2)]
+              efficientnet_b0(input_shape=(256, 256, 3), n_classes=2),
+              densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2)]
 
     # Input layer of ensemble model
     ensemble_input = tf.keras.Input(shape=input_shape)
@@ -360,4 +361,4 @@ def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b0(input_shape, n_classes)
 
     return tf.keras.Model(inputs=ensemble_input,
                           outputs=combined_output,
-                          name='mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b0')
+                          name='mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201')
