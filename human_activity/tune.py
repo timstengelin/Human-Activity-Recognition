@@ -65,7 +65,7 @@ def tune(run_paths, key, parameters_dict):
                 continue
 
     # use agent for optimization
-    wandb.agent(sweep_id, function=tuning, count=50)
+    wandb.agent(sweep_id, function=tuning, count=200)
 
     # clear wandb job
     wandb.finish()
