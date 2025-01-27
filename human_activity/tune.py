@@ -16,7 +16,7 @@ def tune(run_paths, key, parameters_dict):
     wandb.login(key=key)
 
     sweep_config = {
-        'method': 'grid',
+        'method': 'random',
         'metric': {
             'name': 'acc_val',
             'goal': 'maximize'
