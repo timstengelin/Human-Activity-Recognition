@@ -164,25 +164,27 @@ def efficientnet_b3_pretrained(input_shape, n_classes, trainable_rate=0.2, dropo
         (tf.keras.Model): EfficientNetB3 model
     '''
 
-    # Input layer
+    # Define input layer
     inputs = tf.keras.Input(shape=input_shape)
 
     # Preprocess input data
-    prep_inputs = tf.keras.applications.efficientnet.preprocess_input(inputs)
+    preprocessed_inputs = tf.keras.applications.efficientnet.preprocess_input(inputs)
 
-    # Build the EfficientNetB3 model with transfer learning
+    # Build EfficientNetB3 model
     base_model = tf.keras.applications.EfficientNetB3(include_top=False, weights='imagenet', input_shape=input_shape,
                                                       pooling=None, classifier_activation=None)
 
-    # Fine tune from this layer onwards
-    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
-    # Freeze all the layers before the 'fine_tune_at' layer
-    for layer in base_model.layers[:fine_tune_at]:
-        layer.trainable = False
+    # Determine layers to freeze
+    last_nontrainable_layer = len(base_model.layers) - int(len(base_model.layers) * trainable_rate)
 
-    x = base_model(prep_inputs)
+    # Freeze layers up to the fine-tune index
+    for lay in base_model.layers[:last_nontrainable_layer]:
+        lay.trainable = False
 
-    # Identity layer for deep visualization
+    # Pass preprocessed inputs through base model
+    x = base_model(preprocessed_inputs)
+
+    # Apply identity activation
     x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
 
     # Global average pooling and dense output
@@ -208,25 +210,27 @@ def densenet201_pretrained(input_shape, n_classes, trainable_rate=0.2, dropout_r
         (tf.keras.Model): DenseNet201 model
     '''
 
-    # Input layer
+    # Define input layer
     inputs = tf.keras.Input(shape=input_shape)
 
     # Preprocess input data
-    prep_inputs = tf.keras.applications.densenet.preprocess_input(inputs)
+    preprocessed_inputs = tf.keras.applications.densenet.preprocess_input(inputs)
 
-    # Build the DenseNet201 model with transfer learning
+    # Build DenseNet201 model
     base_model = tf.keras.applications.DenseNet201(include_top=False, weights='imagenet', input_shape=input_shape,
                                                    pooling=None, classifier_activation=None)
 
-    # Fine tune from this layer onwards
-    fine_tune_at = int(len(base_model.layers) * (1 - trainable_rate))
-    # Freeze all the layers before the 'fine_tune_at' layer
-    for layer in base_model.layers[:fine_tune_at]:
-        layer.trainable = False
+    # Determine layers to freeze
+    last_nontrainable_layer = len(base_model.layers) - int(len(base_model.layers) * trainable_rate)
 
-    x = base_model(prep_inputs)
+    # Freeze layers up to the fine-tune index
+    for lay in base_model.layers[:last_nontrainable_layer]:
+        lay.trainable = False
 
-    # Identity layer for deep visualization
+    # Pass preprocessed inputs through base model
+    x = base_model(preprocessed_inputs)
+
+    # Apply identity activation
     x = tf.keras.layers.Activation(activation='linear', name='last_conv')(x)
 
     # Global average pooling and dense output
