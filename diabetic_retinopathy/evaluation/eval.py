@@ -56,7 +56,7 @@ def evaluate(model, ds_test, run_paths):
         # TODO: Extra Ordner eval anlegen und darin speichern
     plt.show()
 
-    # Perform deep visualization (for output of the first 3 images)
+    # Generate deep visualizations (for the outputs of the initial 3 images)
     for idx, (test_image, test_label) in enumerate(ds_test):
         visualize(model, test_image, test_label, idx, run_paths)
         if idx >= 1:
