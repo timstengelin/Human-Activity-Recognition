@@ -17,9 +17,12 @@ flags.DEFINE_string('mode', 'evaluate',
 def main(argv):
 
     # Set the model to be worked with
-    #model_names = ['EfficientNetB0'] # e.g. for mode train, tune or evaluate
-    #model_names = ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained'] # e.g. for mode create_ensemble_model
-    model_names = ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201'] # e.g. for mode evaluate
+    #model_names = ['EfficientNetB0']
+        # e.g., for mode train, tune or evaluate
+    #model_names = ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained']
+        # e.g., for mode create_ensemble_model
+    model_names = ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201']
+        # e.g., for mode evaluate
 
     # Create empty lists
     models = []

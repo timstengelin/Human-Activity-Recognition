@@ -1,38 +1,47 @@
-# ---------- ARCHITECTURE PARAMETERS FOR MODE TRAIN, CREATE ENSEMBLE MODEL AND EVALUATE ----------
+# ---------- ARCHITECTURE PARAMETERS FOR MODES TRAIN, CREATE ENSEMBLE MODEL AND EVALUATE ----------
 
 # MobileNetV2
 mobilenet_v2.alpha = 1.0
-mobilenet_v2.dropout_rate=0.2
+mobilenet_v2.dropout_rate = 0.2
 
 # EfficientNetB0
-efficientnet_b0.width_coefficient=1.0
-efficientnet_b0.depth_coefficient=1.0
-efficientnet_b0.dropout_rate=0.2
+efficientnet_b0.width_coefficient = 1.0
+efficientnet_b0.depth_coefficient = 1.0
+efficientnet_b0.dropout_rate = 0.2
 
 # Pretrained MobileNetV2
-mobilenet_v2_pretrained.trainable_rate = 0.2
+mobilenet_v2_pretrained.trainable_rate = 1
 mobilenet_v2_pretrained.dropout_rate = 0.2
 
+# Pretrained EfficientNetB3
+efficientnet_b3_pretrained.trainable_rate = 1
+efficientnet_b3_pretrained.dropout_rate = 0.2
+
 # Pretrained DenseNet201
-densenet201_pretrained.trainable_rate = 0.2
+densenet201_pretrained.trainable_rate = 1
 densenet201_pretrained.dropout_rate = 0.2
+
+
+# ---------- ARCHITECTURE PARAMETERS FOR MODE TUNE ----------
+# Directly modifiable in tune_wand.py
 
 
 # ---------- TRAINING ----------
 
-Trainer.total_steps = 10000
+Trainer.total_steps = 15000
 Trainer.log_interval = 1e2
-Trainer.ckpt_interval = 1e3
+Trainer.ckpt_interval = 1000
 Trainer.learning_rate = 1e-5
 
 
 # ---------- FOLDER/PATH GENERATION ----------
 
-gen_run_folder.path_model_id = 'TEST' # Specifies the name of the experiment
+gen_run_folder.path_model_id = 'mobilenetv2_efficientnetb0_efficientnetb3_densenet201'
+    # Specifies the name of the experiment
 gen_run_folder.new_model = False
-    # Determines whether a new model is to be trained; Has to be set correctly for modes 'train' and 'evaluate'
-    # True := A new model is trained from scratch
-    # False := A model from an existing experiment is trained further
+    # Determines whether a new model is to be trained; Relevant for modes train and evaluate
+    # - True := A new model is trained from scratch
+    # - False := A model from an existing experiment is trained further
 
 
 # ---------- INPUT PIPELINE ----------
@@ -47,5 +56,5 @@ load.load_record = False # If False, TFRecord files are created
 load.resampling = True
 load.train_val_split = 0.8
 load.caching = True
-load.batch_size = 16
+load.batch_size = 32
 load.augmentation = True
