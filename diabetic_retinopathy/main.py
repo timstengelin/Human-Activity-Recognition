@@ -1,5 +1,6 @@
 import gin
 import logging
+import tensorflow as tf
 
 from absl import app, flags
 from train import Trainer
@@ -11,24 +12,12 @@ from tune_wandb import *
 from ensemble_learning import *
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string('mode', 'evaluate',
-                    'The different modes are: train, create_ensemble_model, tune, evaluate')
 
-def main(argv):
 
-    # Set the model to be worked with
-    #model_names = ['EfficientNetB0']
-        # e.g., for mode train, tune or evaluate
-    #model_names = ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained']
-        # e.g., for mode create_ensemble_model
-    model_names = ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201']
-        # e.g., for mode evaluate
-
+@gin.configurable
+def main_logic(argv, model_names, mode):
     # Create empty lists
     models = []
-
-    # Collect data from gin config file
-    gin.parse_config_files_and_bindings(['configs/config.gin'], [])
 
     # Generate folder structures
     run_paths = utils_params.gen_run_folder()
@@ -61,16 +50,25 @@ def main(argv):
         model.summary()
 
     # Train model, create ensemble model, tune model or evaluate model
-    if FLAGS.mode == 'train':
+    if mode == 'train':
         trainer = Trainer(models[0], ds_train, ds_val, run_paths)
         for _ in trainer.train():
             continue
-    elif FLAGS.mode == 'create_ensemble_model':
+    elif mode == 'create_ensemble_model':
         create_ensemble_model(models, run_paths)
-    elif FLAGS.mode == 'tune':
+    elif mode == 'tune':
         tune(run_paths, model_names[0])
-    elif FLAGS.mode == 'evaluate':
+    elif mode == 'evaluate':
         evaluate(models[0], ds_test, run_paths)
+
+
+def main(argv):
+    # Collect data from gin config file
+    gin.parse_config_files_and_bindings(['configs/config.gin'], [])
+
+    # Run main functionality
+    main_logic(argv)
+
 
 if __name__ == "__main__":
     app.run(main)

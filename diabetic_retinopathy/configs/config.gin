@@ -1,3 +1,19 @@
+# ---------- CONFIGURATION OF MAIN FUNCTIONALITY ----------
+
+main_logic.model_names = ['MobileNetV2']
+    # Sets the name of the model to be worked with
+    # - e.g., ['MobileNetV2'], for mode train, tune or evaluate
+    # - e.g., ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained'],
+    #   for mode create_ensemble_model
+    # - e.g., ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201'], for mode evaluate
+main_logic.mode = 'evaluate'
+    # Sets the mode
+    # - 'train' := A model is trained
+    # - 'create_ensemble_model' := Multiple models are combined to one ensemble model
+    # - 'tune' := A model is tuned
+    # - 'evaluate' := A model is evaluated
+
+
 # ---------- ARCHITECTURE PARAMETERS FOR MODES TRAIN, CREATE ENSEMBLE MODEL AND EVALUATE ----------
 
 # MobileNetV2
@@ -8,10 +24,6 @@ mobilenet_v2.dropout_rate = 0.2
 efficientnet_b0.width_coefficient = 1.0
 efficientnet_b0.depth_coefficient = 1.0
 efficientnet_b0.dropout_rate = 0.2
-
-# Pretrained MobileNetV2
-mobilenet_v2_pretrained.trainable_rate = 1
-mobilenet_v2_pretrained.dropout_rate = 0.2
 
 # Pretrained EfficientNetB3
 efficientnet_b3_pretrained.trainable_rate = 1
@@ -36,7 +48,7 @@ Trainer.learning_rate = 1e-5
 
 # ---------- FOLDER/PATH GENERATION ----------
 
-gen_run_folder.path_model_id = 'mobilenetv2_efficientnetb0_efficientnetb3_densenet201'
+gen_run_folder.path_model_id = 'mobilenetv2_withoutAug'
     # Specifies the name of the experiment
 gen_run_folder.new_model = False
     # Determines whether a new model is to be trained; Relevant for modes train and evaluate
