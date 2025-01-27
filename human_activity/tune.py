@@ -16,15 +16,14 @@ def tune(run_paths, key, parameters_dict):
     wandb.login(key=key)
 
     sweep_config = {
-        'method': 'random'
+        'method': 'grid',
+        'metric': {
+            'name': 'acc_val',
+            'goal': 'maximize'
+        },
+        'parameters' : parameters_dict
     }
-    metric = {
-        'name': 'acc_val',
-        'goal': 'maximize'
-    }
-    sweep_config['metric'] = metric
     # create wandb conf and obj
-    sweep_config['parameters'] = parameters_dict
     sweep_id = wandb.sweep(sweep=sweep_config, project="Activity Recognition HAPT")
 
 
