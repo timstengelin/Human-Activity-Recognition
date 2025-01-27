@@ -11,15 +11,15 @@ from tune_wandb import *
 from ensemble_learning import *
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string('mode', 'tune',
+flags.DEFINE_string('mode', 'evaluate',
                     'The different modes are: train, create_ensemble_model, tune, evaluate')
 
 def main(argv):
 
     # Set the model to be worked with
-    model_names = ['EfficientNetB0'] # e.g. for mode train, tune or evaluate
-    #model_names = ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB0'] # e.g. for mode create_ensemble_model
-    #model_names = ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB0'] # e.g. for mode evaluate
+    #model_names = ['EfficientNetB0'] # e.g. for mode train, tune or evaluate
+    #model_names = ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained'] # e.g. for mode create_ensemble_model
+    model_names = ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201'] # e.g. for mode evaluate
 
     # Create empty lists
     models = []
@@ -55,8 +55,9 @@ def main(argv):
             models.append(densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2))
         elif model_name == 'ResNet50_pretrained':
             models.append(resnet50_pretrained(input_shape=(256, 256, 3), n_classes=2))
-        elif model_name == 'MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB0':
-            models.append(mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b0(input_shape=(256, 256, 3), n_classes=2))
+        elif model_name == 'MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201':
+            models.append(mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(
+                input_shape=(256, 256, 3), n_classes=2))
 
     # Print model summaries
     for model in models:
