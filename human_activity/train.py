@@ -178,11 +178,6 @@ def training(run_paths, model_name):
     # call of data pipeline to retrieve train, validation and test dataset
     ds_train, ds_val, ds_test, ds_info = datasets.load()
 
-    # step for single class per sequence (sequence2oneLabel)
-    # ds_train = ds_train.map(lambda x, y: (x, tf.reduce_mean(y, axis=1)))
-    # ds_val = ds_val.map(lambda x, y: (x, tf.reduce_mean(y, axis=1)))
-    # ds_test = ds_test.map(lambda x, y: (x, tf.reduce_mean(y, axis=1)))
-
     # get shape from actual dataset
     feature_shape = None
     label_shape = None
