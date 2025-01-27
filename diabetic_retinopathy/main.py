@@ -47,14 +47,10 @@ def main(argv):
             models.append(mobilenet_v2(input_shape=(256, 256, 3), n_classes=2))
         elif model_name == 'EfficientNetB0':
             models.append(efficientnet_b0(input_shape=(256, 256, 3), n_classes=2))
-        elif model_name == 'MobileNetV2_pretrained':
-            models.append(mobilenet_v2_pretrained(input_shape=(256, 256, 3), n_classes=2))
         elif model_name == 'EfficientNetB3_pretrained':
             models.append(efficientnet_b3_pretrained(input_shape=(256, 256, 3), n_classes=2))
         elif model_name == 'DenseNet201_pretrained':
             models.append(densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2))
-        elif model_name == 'ResNet50_pretrained':
-            models.append(resnet50_pretrained(input_shape=(256, 256, 3), n_classes=2))
         elif model_name == 'MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201':
             models.append(mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(
                 input_shape=(256, 256, 3), n_classes=2))
