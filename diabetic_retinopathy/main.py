@@ -44,9 +44,7 @@ def main(argv):
 
     # Define models
     for model_name in model_names:
-        if model_name == 'LeNet':
-            models.append(le_net(input_shape=(256, 256, 3), n_classes=2))
-        elif model_name == 'MobileNetV2':
+        if model_name == 'MobileNetV2':
             models.append(mobilenet_v2(input_shape=(256, 256, 3), n_classes=2))
         elif model_name == 'EfficientNetB0':
             models.append(efficientnet_b0(input_shape=(256, 256, 3), n_classes=2))
