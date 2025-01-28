@@ -11,6 +11,19 @@ wandb.login(key="c9cea4bca2336afb9f6eb8e774600fc4ec87b11a")
 
 # Function to get sweep config, metric, and parameter dictionary based on model selection
 def get_sweep_config(model_name):
+    '''
+    Returns the sweep configuration for hyperparameter tuning based on the selected model
+
+    Args:
+        model_name (String): A string representing the name of the model;
+            Must be one of ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained']
+
+    Returns:
+        A dictionary containing the sweep configuration, including the tuning method, metric to optimize
+            and parameter search space
+
+    '''
+
     if model_name == 'MobileNetV2':
         sweep_config = {
             'method': 'grid', # 'grid' for grid search, 'random' for random search
@@ -70,6 +83,16 @@ def get_sweep_config(model_name):
 
 
 def tune(run_paths, model_name):
+    '''
+    Tunes the model hyperparameters using the Weights & Biases (wandb) sweep framework
+
+    Args:
+        run_paths (dict): Dictionary containing directories for saving outputs
+        model_name (String): A string representing the name of the model;
+            Must be one of ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained']
+
+    '''
+
     # Get model-specific sweep configuration
     sweep_config = get_sweep_config(model_name)
 
