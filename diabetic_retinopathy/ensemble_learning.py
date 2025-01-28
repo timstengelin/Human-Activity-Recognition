@@ -12,8 +12,8 @@ def create_ensemble_model(models, run_paths):
     Combines the given models into an ensemble model
 
     Args:
-        model: TODO
-        run_paths: TODO
+        model (keras.Model): Neural network to analyze
+        run_paths (dict): Dictionary containing directories for saving outputs
 
     Returns:
 
