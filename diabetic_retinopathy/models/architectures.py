@@ -204,13 +204,12 @@ def densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2, trainable_rat
 
 
 @gin.configurable
-def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(input_shape=(256, 256, 3), n_classes=2):
+def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(input_shape=(256, 256, 3)):
     '''
     Defines an ensemble of MobileNetV2, EfficientNetB0, EfficientNetB3 and DenseNet201
 
     Args:
         input_shape (tuple): Shape of the input tensor (height, width, channels)
-        n_classes (int): Number of output classes
 
     Returns:
         (tf.keras.Model): ensemble model
