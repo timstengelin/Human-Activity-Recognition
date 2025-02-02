@@ -52,3 +52,14 @@ class Categorical_Accuracy(tf.keras.metrics.Metric):
     def result(self):
         # return parameters
         return self.accuracy/self.count
+
+def crossentropy(labels, predictions, weights, *args, **kwargs):
+    # scale predictions so that the class probas of each sample sum to 1
+    predictions /= tf.keras.backend.sum(predictions, axis=-1, keepdims=True)
+    # clip to prevent NaN's and Inf's
+    predictions = tf.keras.backend.clip(predictions, tf.keras.backend.epsilon(), 1 - tf.keras.backend.epsilon())
+    # calc
+    loss = labels * tf.keras.backend.log(predictions) * weights
+    loss = -tf.keras.backend.sum(loss, -1)
+
+    return loss

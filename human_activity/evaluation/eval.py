@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sn
 import os
+from utils import utils_misc
+from evaluation.visualization import visualization
+from train import create_model
+from input_pipeline import datasets
 
 @gin.configurable
 def evaluate(model, ds_test, run_paths, n_classes):
@@ -56,3 +60,29 @@ def evaluate(model, ds_test, run_paths, n_classes):
     plt.title("Confusion matrix")
     sn.heatmap(df_cm, annot=True)
     plt.savefig(os.path.join(run_paths['path_board_val'], 'confusion_matrix.png'))
+
+@gin.configurable
+def evaluation(run_paths, model_name):
+    utils_misc.set_loggers(run_paths['path_logs_eval'], logging.INFO)
+
+    # call of data pipeline to retrieve train, validation and test dataset
+    ds_train, ds_val, ds_test, ds_info = datasets.load()
+
+    # get shape from actual dataset
+    feature_shape = None
+    label_shape = None
+    for data, label in ds_train:
+        feature_shape = data.shape[1:]
+        label_shape = label.shape[1:]
+        break
+
+    model = create_model(model_name=model_name, feature_shape=feature_shape, label_shape=label_shape)
+
+    evaluate(model=model,
+             ds_test=ds_test,
+             run_paths=run_paths,
+             n_classes=label_shape[-1])
+
+    visualization(model=model,
+                  run_paths=run_paths,
+                  dataset=ds_test)
