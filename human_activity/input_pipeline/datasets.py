@@ -394,9 +394,6 @@ def create_tfrecord_files(data_dir, window_size, window_shift, balance):
     if balance:
         labels = [train_labels, val_labels, test_labels]
         plt.hist(labels, bins=np.arange(1,14), density=True, label=["train", "validation", "test"])
-        #plt.hist(val_labels, bins=np.arange(1, 14), density=True)
-        #plt.hist(test_labels, bins=np.arange(1, 14), density=True)
-        plt.title("Histogram for activity class distribution")
         plt.xlabel("Activity class")
         plt.ylabel("Class share")
         plt.legend(loc="upper right")
