@@ -218,7 +218,7 @@ def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(input_s
     # Define models
     models = [mobilenet_v2(input_shape=(256, 256, 3), n_classes=2),
               efficientnet_b0(input_shape=(256, 256, 3), n_classes=2),
-              efficientnet_b0(input_shape=(256, 256, 3), n_classes=2),
+              efficientnet_b3_pretrained(input_shape=(256, 256, 3), n_classes=2),
               densenet201_pretrained(input_shape=(256, 256, 3), n_classes=2)]
 
     # Input layer of ensemble model
