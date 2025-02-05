@@ -4,7 +4,7 @@
 - Tim Stengelin  
   st190770@stud.uni-stuttgart.de
 
-# Project I: Diabetic Retinopahty Detection
+# Project I: Diabetic Retinopathty Detection
 Diabetic retinopathy (DR) is a serious ocular condition that can significantly compromise the vision of individuals with diabetes. In this study, we developed multiple detection models based on deep convolutional neural networks and compared their performance. All models were trained using the IDRID dataset. Additionally, we employed data augmentation, transfer learning and ensemble learning techniques, enabling our best model to achieve an accuracy of 84%. Ultimately, our findings suggest that the size of the dataset is the most critical factor influencing detection performance.
 
 ## Content
@@ -31,7 +31,7 @@ Test accuracies for different model variants:
 | "                        | EfficientNetB3     | True             | True                  | 0.84              |
 | DenseNet                 | DenseNet201        | True             | True                  | 0.79              |
 
-Test accuracy of composed model from MobileNetV2, EfficientNetB0 with Augmentation and pre-trained EfficientNetB3, DenseNet201 results in: 0.80
+The test accuracy of the composed model from MobileNetV2, EfficientNetB0 with Augmentation and pre-trained EfficientNetB3, DenseNet201 results in: 0.80
 
 ## How to run the Code?
 TODO
