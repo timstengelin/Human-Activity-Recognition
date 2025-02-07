@@ -33,8 +33,10 @@ def main_logic(run_paths, model_names, mode):
             models.append(efficientnet_b3_pretrained())
         elif model_name == 'DenseNet201_pretrained':
             models.append(densenet201_pretrained())
-        elif model_name == 'MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201':
-            models.append(mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201())
+        elif model_name == ('MobileNetV2_AND_EfficientNetB0_AND_'
+                            'EfficientNetB3_AND_DenseNet201'):
+            models.append(
+                mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201())
 
     # Print model summaries
     for model in models:
@@ -55,7 +57,8 @@ def main_logic(run_paths, model_names, mode):
 
 def main(argv):
     # Collect data from gin config file
-    gin.parse_config_files_and_bindings(['configs/config.gin'], [])
+    gin.parse_config_files_and_bindings(['configs/config.gin'],
+                                        [])
 
     if len(argv) == 1:
         # Run with manual configuration, represented in config.gin
@@ -68,7 +71,8 @@ def main(argv):
         # Run Quickstart
 
         # Generate folder structures
-        run_paths = utils_params.gen_run_folder(argv[3], ast.literal_eval(argv[4]))
+        run_paths = utils_params.gen_run_folder(argv[3],
+                                                ast.literal_eval(argv[4]))
 
         main_logic(run_paths, ast.literal_eval(argv[1]), argv[2])
 
