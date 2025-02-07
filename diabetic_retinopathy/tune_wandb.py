@@ -1,5 +1,3 @@
-import logging
-import gin
 import wandb
 
 from train import Trainer
