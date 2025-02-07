@@ -36,10 +36,10 @@ def create_ensemble_model(models, run_paths):
         ckpts.append(tf.train.Checkpoint(step=tf.Variable(1),
                                          optimizer=tf.keras.optimizers.Adam(),
                                          net=model))
-        ckpt_managers.append(tf.train.CheckpointManager(checkpoint=ckpts[-1],
-                                                        directory=
-                                                        helper_path_list[idx],
-                                                        max_to_keep=1))
+        ckpt_managers.append(
+            tf.train.CheckpointManager(checkpoint=ckpts[-1],
+                                       directory=helper_path_list[idx],
+                                       max_to_keep=1))
         ckpts[-1].restore(ckpt_managers[-1].latest_checkpoint).expect_partial()
 
         logging.info("Restored from"
@@ -77,10 +77,10 @@ def create_ensemble_model(models, run_paths):
     ckpt = tf.train.Checkpoint(step=tf.Variable(1),
                                optimizer=tf.keras.optimizers.Adam(),
                                net=ensemble_model)
-    ckpt_manager = tf.train.CheckpointManager(checkpoint=ckpt,
-                                              directory=
-                                              run_paths["path_ckpts_train"],
-                                              max_to_keep=1)
+    ckpt_manager = (
+        tf.train.CheckpointManager(checkpoint=ckpt,
+                                   directory=run_paths["path_ckpts_train"],
+                                   max_to_keep=1))
 
     # Save final checkpoint of ensemble model
     ckpt_path = ckpt_manager.save()
