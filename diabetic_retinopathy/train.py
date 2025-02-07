@@ -106,7 +106,7 @@ class Trainer(object):
                                              self.train_accuracy.result() * 100,
                                              self.val_loss.result(),
                                              self.val_accuracy.result() * 100))
-                
+
                 # Write validation summary to tensorboard
                 if not self.tuning:
                     with self.val_summary_writer.as_default():

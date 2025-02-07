@@ -14,7 +14,7 @@ def create_ensemble_model(models, run_paths):
     Returns:
 
     '''
-    # Helper # TODO: Remove Helper
+
     path_model_root = os.path.abspath(os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, '05_Workspace', 'experiments'))
     helper_path_list = [
