@@ -1,12 +1,12 @@
 # ---------- MAIN FUNCTIONALITY ----------
 
-main_logic.model_names = ['MobileNetV2']
+main_logic.model_names = ['EfficientNetB3_pretrained']
     # Sets the name of the model to be worked with
     # - e.g., ['MobileNetV2'], for mode train, tune or evaluate
     # - e.g., ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained'],
     #   for mode create_ensemble_model
     # - e.g., ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201'], for mode evaluate
-main_logic.mode = 'evaluate'
+main_logic.mode = 'train'
     # Sets the mode
     # - 'train' := A model is trained
     # - 'create_ensemble_model' := Multiple models are combined to one ensemble model
@@ -35,7 +35,7 @@ densenet201_pretrained.dropout_rate = 0.2
 
 
 # ---------- ARCHITECTURE PARAMETERS FOR MODE TUNE ----------
-# Directly modifiable in tune_wand.py
+# Directly modifiable in tune_wandb.py
 
 
 # ---------- TRAINING ----------
@@ -48,9 +48,9 @@ Trainer.learning_rate = 1e-5
 
 # ---------- FOLDER/PATH GENERATION ----------
 
-gen_run_folder.path_model_id = 'mobilenetv2_withoutAug'
+gen_run_folder.path_model_id = 'efficientnetb3'
     # Specifies the name of the experiment
-gen_run_folder.new_model = False
+gen_run_folder.new_model = True
     # Determines whether a new model is to be trained; Relevant for modes train and evaluate
     # - True := A new model is trained from scratch
     # - False := A model from an existing experiment is trained further
@@ -59,11 +59,7 @@ gen_run_folder.new_model = False
 # ---------- INPUT PIPELINE ----------
 
 load.img_dir = '/misc/home/data/IDRID_dataset/images'
-#load.img_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/images'
-    # For local execution on Tim's PC
 load.csv_dir = '/misc/home/data/IDRID_dataset/labels'
-#load.csv_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/labels'
-    # For local execution on Tim's PC
 load.load_record = False # If False, TFRecord files are created
 load.resampling = True
 load.train_val_split = 0.8

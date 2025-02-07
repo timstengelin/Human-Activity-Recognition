@@ -1,6 +1,7 @@
 import gin
 import logging
 import tensorflow as tf
+import ast
 
 from absl import app, flags
 from train import Trainer
@@ -15,12 +16,9 @@ FLAGS = flags.FLAGS
 
 
 @gin.configurable
-def main_logic(argv, model_names, mode):
+def main_logic(run_paths, model_names, mode):
     # Create empty lists
     models = []
-
-    # Generate folder structures
-    run_paths = utils_params.gen_run_folder()
 
     # Set loggers
     utils_misc.set_loggers(run_paths['path_logs_train'], logging.INFO)
@@ -65,8 +63,20 @@ def main(argv):
     # Collect data from gin config file
     gin.parse_config_files_and_bindings(['configs/config.gin'], [])
 
-    # Run main functionality
-    main_logic(argv)
+    if len(argv) == 1:
+        # Run with manual configuration, represented in config.gin
+
+        # Generate folder structures
+        run_paths = utils_params.gen_run_folder()
+
+        main_logic(run_paths)
+    else:
+        # Run Quickstart
+
+        # Generate folder structures
+        run_paths = utils_params.gen_run_folder(argv[3], ast.literal_eval(argv[4]))
+
+        main_logic(run_paths, ast.literal_eval(argv[1]), argv[2])
 
 
 if __name__ == "__main__":
