@@ -1,11 +1,13 @@
 import tensorflow as tf
 
+
 class BinaryAccuracy(tf.keras.metrics.Metric):
 
     def __init__(self, name='binary_accuracy', **kwargs):
         '''
         Initialize the metric with the given name and optional arguments;
-        Add two state variables: `total` (total samples) and `correct` (correct predictions)
+        Add two state variables: `total` (total samples) and `correct`
+            (correct predictions)
         '''
 
         super(BinaryAccuracy, self).__init__(name=name, **kwargs)
@@ -24,7 +26,8 @@ class BinaryAccuracy(tf.keras.metrics.Metric):
         predicted_classes = tf.cast(predicted_classes, tf.int64)
 
         # Count the number of correct predictions
-        correct_predictions = tf.reduce_sum(tf.cast(predicted_classes == labels, tf.float32))
+        correct_predictions = tf.reduce_sum(
+            tf.cast(predicted_classes == labels, tf.float32))
 
         # Update the state variables
         self.correct.assign_add(correct_predictions)
@@ -52,7 +55,8 @@ class BinaryConfusionMatrix(tf.keras.metrics.Metric):
     def __init__(self, name='binary_confusion_matrix', **kwargs):
         '''
         Initialize the metric with the given name and optional arguments;
-        Add state variables to track true positives, false positives, true negatives, and false negatives
+        Add state variables to track true positives, false positives,
+            true negatives, and false negatives
         '''
 
         super(BinaryConfusionMatrix, self).__init__(name=name, **kwargs)
@@ -72,11 +76,32 @@ class BinaryConfusionMatrix(tf.keras.metrics.Metric):
         labels = tf.cast(labels, tf.int64)
         predicted_classes = tf.cast(predicted_classes, tf.int64)
 
-        # Update true positives, false positives, true negatives, and false negatives
-        self.true_positives.assign_add(tf.reduce_sum(tf.cast((predicted_classes == 1) & (labels == 1), tf.float32)))
-        self.false_positives.assign_add(tf.reduce_sum(tf.cast((predicted_classes == 1) & (labels == 0), tf.float32)))
-        self.true_negatives.assign_add(tf.reduce_sum(tf.cast((predicted_classes == 0) & (labels == 0), tf.float32)))
-        self.false_negatives.assign_add(tf.reduce_sum(tf.cast((predicted_classes == 0) & (labels == 1), tf.float32)))
+        # Update true positives, false positives, true negatives, and false
+        # negatives
+        self.true_positives.assign_add(
+            tf.reduce_sum(
+                tf.cast(
+                    (predicted_classes == 1) & (
+                        labels == 1),
+                    tf.float32)))
+        self.false_positives.assign_add(
+            tf.reduce_sum(
+                tf.cast(
+                    (predicted_classes == 1) & (
+                        labels == 0),
+                    tf.float32)))
+        self.true_negatives.assign_add(
+            tf.reduce_sum(
+                tf.cast(
+                    (predicted_classes == 0) & (
+                        labels == 0),
+                    tf.float32)))
+        self.false_negatives.assign_add(
+            tf.reduce_sum(
+                tf.cast(
+                    (predicted_classes == 0) & (
+                        labels == 1),
+                    tf.float32)))
 
     def result(self):
         '''
@@ -84,8 +109,8 @@ class BinaryConfusionMatrix(tf.keras.metrics.Metric):
         '''
 
         return tf.convert_to_tensor([
-            [self.true_negatives, self.false_positives],    # First row: TN, FP
-            [self.false_negatives, self.true_positives]     # Second row: FN, TP
+            [self.true_negatives, self.false_positives],  # First row: TN, FP
+            [self.false_negatives, self.true_positives]  # Second row: FN, TP
         ])
 
     def reset_states(self):
