@@ -3,7 +3,13 @@ import tensorflow as tf
 
 
 @gin.configurable
-def bottleneck_block(inputs, filters, expansion_factor, stride, repeats, alpha):
+def bottleneck_block(
+        inputs,
+        filters,
+        expansion_factor,
+        stride,
+        repeats,
+        alpha):
     '''
     Defines a stack of bottleneck blocks
 
@@ -54,17 +60,31 @@ def bottleneck(inputs, filters, expansion_factor, stride):
 
     # Expand
     if expansion_factor != 1:
-        x = tf.keras.layers.Conv2D(expanded_channels, kernel_size=1, strides=1, padding='same', use_bias=False)(x)
+        x = tf.keras.layers.Conv2D(
+            expanded_channels,
+            kernel_size=1,
+            strides=1,
+            padding='same',
+            use_bias=False)(x)
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.ReLU(6.0)(x)
 
     # Depthwise convolution
-    x = tf.keras.layers.DepthwiseConv2D(kernel_size=3, strides=stride, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.DepthwiseConv2D(
+        kernel_size=3,
+        strides=stride,
+        padding='same',
+        use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU(6.0)(x)
 
     # Project
-    x = tf.keras.layers.Conv2D(filters, kernel_size=1, strides=1, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.Conv2D(
+        filters,
+        kernel_size=1,
+        strides=1,
+        padding='same',
+        use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
     # Skip connection
@@ -75,7 +95,13 @@ def bottleneck(inputs, filters, expansion_factor, stride):
 
 
 @gin.configurable
-def mbconv_block(inputs, filters, expansion_factor, stride, repeats, width_coefficient):
+def mbconv_block(
+        inputs,
+        filters,
+        expansion_factor,
+        stride,
+        repeats,
+        width_coefficient):
     '''
     Defines a stack of MBConv blocks
 
@@ -126,17 +152,31 @@ def mbconv(inputs, filters, expansion_factor, stride):
 
     # Expand
     if expansion_factor != 1:
-        x = tf.keras.layers.Conv2D(expanded_channels, kernel_size=1, strides=1, padding='same', use_bias=False)(x)
+        x = tf.keras.layers.Conv2D(
+            expanded_channels,
+            kernel_size=1,
+            strides=1,
+            padding='same',
+            use_bias=False)(x)
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.ReLU()(x)
 
     # Depthwise convolution
-    x = tf.keras.layers.DepthwiseConv2D(kernel_size=3, strides=stride, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.DepthwiseConv2D(
+        kernel_size=3,
+        strides=stride,
+        padding='same',
+        use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
 
     # Project
-    x = tf.keras.layers.Conv2D(filters, kernel_size=1, strides=1, padding='same', use_bias=False)(x)
+    x = tf.keras.layers.Conv2D(
+        filters,
+        kernel_size=1,
+        strides=1,
+        padding='same',
+        use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
     # Skip connection
