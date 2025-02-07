@@ -6,18 +6,30 @@ import wandb
 
 @gin.configurable
 class Trainer(object):
-    def __init__(self, model, ds_train, ds_val, run_paths, total_steps, log_interval,
-                 ckpt_interval, learning_rate, tuning=False):
+    def __init__(
+            self,
+            model,
+            ds_train,
+            ds_val,
+            run_paths,
+            total_steps,
+            log_interval,
+            ckpt_interval,
+            learning_rate,
+            tuning=False):
         # Loss objective
-        self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+        self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
+            from_logits=False)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
         # Metrics
         self.train_loss = tf.keras.metrics.Mean(name='train_loss')
-        self.train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
+        self.train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
+            name='train_accuracy')
 
         self.val_loss = tf.keras.metrics.Mean(name='val_loss')
-        self.val_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='val_accuracy')
+        self.val_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
+            name='val_accuracy')
 
         # Attributes
         self.model = model
@@ -31,16 +43,21 @@ class Trainer(object):
 
         # Summary writer
         if not tuning:
-            self.train_summary_writer = tf.summary.create_file_writer(self.run_paths['path_summary_train'])
-            self.val_summary_writer = tf.summary.create_file_writer(self.run_paths['path_summary_val'])
+            self.train_summary_writer = tf.summary.create_file_writer(
+                self.run_paths['path_summary_train'])
+            self.val_summary_writer = tf.summary.create_file_writer(
+                self.run_paths['path_summary_val'])
 
         # Checkpoint Manager
-        self.ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=self.optimizer, net=self.model)
+        self.ckpt = tf.train.Checkpoint(
+            step=tf.Variable(1),
+            optimizer=self.optimizer,
+            net=self.model)
         if not tuning:
-            self.ckpt_manager = tf.train.CheckpointManager(checkpoint=self.ckpt,
-                                                        directory=self.run_paths["path_ckpts_train"],
-                                                        max_to_keep=10)
-
+            self.ckpt_manager = tf.train.CheckpointManager(
+                checkpoint=self.ckpt,
+                directory=self.run_paths["path_ckpts_train"],
+                max_to_keep=10)
 
     @tf.function
     def train_step(self, images, labels):
@@ -50,11 +67,11 @@ class Trainer(object):
             predictions = self.model(images, training=True)
             loss = self.loss_object(labels, predictions)
         gradients = tape.gradient(loss, self.model.trainable_variables)
-        self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+        self.optimizer.apply_gradients(
+            zip(gradients, self.model.trainable_variables))
 
         self.train_loss(loss)
         self.train_accuracy(labels, predictions)
-
 
     @tf.function
     def val_step(self, images, labels):
@@ -66,19 +83,21 @@ class Trainer(object):
         self.val_loss(t_loss)
         self.val_accuracy(labels, predictions)
 
-
     def train(self):
 
         if not self.tuning:
-            # If training is interrupted unexpectedly, resume the model from this point and continue training,
-            # otherwise, if it's the initial step of training, start from the beginning
+            # If training is interrupted unexpectedly,
+            # resume the model from this point and continue training,
+            # otherwise, if it's the initial step of training, start from the
+            # beginning
             self.ckpt.restore(self.ckpt_manager.latest_checkpoint)
             if self.ckpt_manager.latest_checkpoint:
-                logging.info("Restored from checkpoint {}".format(self.ckpt_manager.latest_checkpoint))
+                logging.info(
+                    "Restored from checkpoint {}".format(
+                        self.ckpt_manager.latest_checkpoint))
                 self.ckpt.step.assign_add(1)
             else:
                 logging.info("Initializing from scratch.")
-
 
         for idx, (images, labels) in enumerate(self.ds_train):
             step = int(self.ckpt.step.numpy())
@@ -88,8 +107,11 @@ class Trainer(object):
             # Write train summary to tensorboard
             if not self.tuning:
                 with self.train_summary_writer.as_default():
-                    tf.summary.scalar('loss', self.train_loss.result(), step=step)
-                    tf.summary.scalar('accuracy', self.train_accuracy.result() * 100, step=step)
+                    tf.summary.scalar(
+                        'loss', self.train_loss.result(), step=step)
+                    tf.summary.scalar(
+                        'accuracy', self.train_accuracy.result() * 100,
+                        step=step)
 
             if step % self.log_interval == 0:
 
@@ -100,18 +122,24 @@ class Trainer(object):
                 for val_images, val_labels in self.ds_val:
                     self.val_step(val_images, val_labels)
 
-                template = 'Step {}, Loss: {}, Accuracy: {}, Validation Loss: {}, Validation Accuracy: {}'
-                logging.info(template.format(step,
-                                             self.train_loss.result(),
-                                             self.train_accuracy.result() * 100,
-                                             self.val_loss.result(),
-                                             self.val_accuracy.result() * 100))
+                template = ('Step {}, Loss: {}, Accuracy: {},'
+                            'Validation Loss: {}, Validation Accuracy: {}')
+                logging.info(
+                    template.format(
+                        step,
+                        self.train_loss.result(),
+                        self.train_accuracy.result() * 100,
+                        self.val_loss.result(),
+                        self.val_accuracy.result() * 100))
 
                 # Write validation summary to tensorboard
                 if not self.tuning:
                     with self.val_summary_writer.as_default():
-                        tf.summary.scalar('loss', self.val_loss.result(), step=step)
-                        tf.summary.scalar('accuracy', self.val_accuracy.result() * 100, step=step)
+                        tf.summary.scalar(
+                            'loss', self.val_loss.result(), step=step)
+                        tf.summary.scalar(
+                            'accuracy',
+                            self.val_accuracy.result() * 100, step=step)
 
                 # Write to wandb
                 if self.tuning:
@@ -132,12 +160,16 @@ class Trainer(object):
                 if int(self.ckpt.step) % self.ckpt_interval == 0:
                     # Save checkpoint
                     ckpt_path = self.ckpt_manager.save()
-                    logging.info(f"Checkpoint saved at step {int(self.ckpt.step)}: {ckpt_path}")
+                    logging.info(
+                        f"Checkpoint saved at"
+                        f"step {int(self.ckpt.step)}: {ckpt_path}")
 
                 if step % self.total_steps == 0:
                     # Save final checkpoint
                     ckpt_path = self.ckpt_manager.save()
-                    logging.info(f"Final checkpoint saved at step {int(self.ckpt.step)}: {ckpt_path}")
+                    logging.info(
+                        f"Final checkpoint saved at"
+                        f"step {int(self.ckpt.step)}: {ckpt_path}")
                     return self.val_accuracy.result().numpy()
 
             # End training
