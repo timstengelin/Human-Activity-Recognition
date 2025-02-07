@@ -385,11 +385,7 @@ def densenet201_pretrained(
 
 
 @gin.configurable
-def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(
-    input_shape=(
-        256,
-        256,
-        3)):
+def composed_model(input_shape=(256, 256, 3)):
     '''
     Defines an ensemble of MobileNetV2, EfficientNetB0,
         EfficientNetB3 and DenseNet201
@@ -433,5 +429,4 @@ def mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201(
     return tf.keras.Model(
         inputs=ensemble_input,
         outputs=combined_output,
-        name='mobilenet_v2_AND_efficientnet_b0_'
-             'AND_efficientnet_b3_AND_densenet201')
+        name='composed_model')

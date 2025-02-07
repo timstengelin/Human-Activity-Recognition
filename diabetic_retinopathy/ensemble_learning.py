@@ -11,10 +11,9 @@ def create_ensemble_model(models, run_paths):
         model (keras.Model): Neural network to analyze
         run_paths (dict): Dictionary containing directories for saving outputs
 
-    Returns:
-
     '''
 
+    # Needs to be adapted in case of other than local execution!
     path_model_root = os.path.abspath(os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, '05_Workspace',
         'experiments'))

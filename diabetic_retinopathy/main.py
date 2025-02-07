@@ -33,10 +33,8 @@ def main_logic(run_paths, model_names, mode):
             models.append(efficientnet_b3_pretrained())
         elif model_name == 'DenseNet201_pretrained':
             models.append(densenet201_pretrained())
-        elif model_name == ('MobileNetV2_AND_EfficientNetB0_AND_'
-                            'EfficientNetB3_AND_DenseNet201'):
-            models.append(
-                mobilenet_v2_AND_efficientnet_b0_AND_efficientnet_b3_AND_densenet201())
+        elif model_name == 'ComposedModel':
+            models.append(composed_model())
 
     # Print model summaries
     for model in models:

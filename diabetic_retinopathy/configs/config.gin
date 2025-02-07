@@ -6,11 +6,8 @@ main_logic.model_names = ['EfficientNetB3_pretrained']
     # Sets the name of the model to be worked with
     # - e.g., ['MobileNetV2'], for mode train, tune or evaluate
     # - e.g., ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained',
-               'DenseNet201_pretrained'],
-    #   for mode create_ensemble_model
-    # - e.g.,
-        ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201'],
-        for mode evaluate
+               'DenseNet201_pretrained'], for mode create_ensemble_model
+    # - e.g., ['ComposedModel'], for mode evaluate
 main_logic.mode = 'train'
     # Sets the mode
     # - 'train' := A model is trained
