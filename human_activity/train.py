@@ -169,6 +169,10 @@ def create_model(model_name, feature_shape, label_shape):
         model = architectures.gru_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
     elif model_name == "RNN_model":
         model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "Conv1d_model":
+        model = architectures.conv1d_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "variable_LSTM_model":
+        model = architectures.variable_lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
     return model
 @gin.configurable
 def training(run_paths, model_name):
