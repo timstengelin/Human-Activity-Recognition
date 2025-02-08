@@ -34,9 +34,11 @@ Trainer.ckpt_interval = 1e1
 Trainer.learning_rate = 1e-4
 
 # ---------- CLASS BALANCING ----------
+
 Trainer.class_weight = [1., 1.06206897, 1.15789474, 1.01986755, 0.91666667, 0.93902439, 11.84615385, 15.4, 9.625,11., 7.7, 11.]
 
-# Input pipeline
+# ---------- INPUT PIPELINE PARAMETERS ----------
+
 load.name = 'hapt'
 load.data_dir =  '/home/data' # For execution on ISS Server
 #load.data_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/HAPT_dataset' # For local execution on Tim's computer
@@ -46,7 +48,8 @@ load.window_shift = 125
 load.batch_size = 64
 create_tfrecord_files.balance = False
 
-# Visualization
+# ---------- VISUALIZATION PARAMETERS ----------
+
 visualization.range_time = [1000,20000]
 
 # ---------- PARAMETERS FOR MODE TUNE ----------
