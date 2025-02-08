@@ -46,6 +46,16 @@ densenet201_pretrained.dropout_rate = 0.2
 
 
 # -----------------------------------------------------------------------------
+# PARAMETERS FOR MODE CREATE ENSEMBLE MODEL
+# -----------------------------------------------------------------------------
+
+create_ensemble_model.model_names = ['mobilenetv2_withAug',
+                                     'efficientnetb0_withAug',
+                                     'efficientnetb3',
+                                     'densenet201']
+
+
+# -----------------------------------------------------------------------------
 # TRAINING
 # -----------------------------------------------------------------------------
 Trainer.total_steps = 9000

@@ -1,9 +1,12 @@
 import os
 import tensorflow as tf
 import logging
+import gin
 
 
-def create_ensemble_model(models, run_paths):
+@gin.configurable
+def create_ensemble_model(models, run_paths, model_names):
+
     '''
     Combines the given models into an ensemble model
 
@@ -18,10 +21,10 @@ def create_ensemble_model(models, run_paths):
         os.path.dirname(__file__), os.pardir, os.pardir, '05_Workspace',
         'experiments'))
     helper_path_list = [
-        os.path.join(path_model_root, 'mobilenetv2_withAug', 'ckpts'),
-        os.path.join(path_model_root, 'efficientnetb0_withAug', 'ckpts'),
-        os.path.join(path_model_root, 'efficientnetb3', 'ckpts'),
-        os.path.join(path_model_root, 'densenet201', 'ckpts')]
+        os.path.join(path_model_root, model_names[0], 'ckpts'),
+        os.path.join(path_model_root, model_names[1], 'ckpts'),
+        os.path.join(path_model_root, model_names[2], 'ckpts'),
+        os.path.join(path_model_root, model_names[3], 'ckpts')]
 
     # Log message
     logging.info('Start combining the given models into an ensemble model')
