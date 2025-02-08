@@ -110,3 +110,56 @@ def bidi_lstm_architecture(input_shape, n_classes, dropout_rate, units):
     out = custom_layers.basic_dense_layer(inputs=out, units=n_classes, activation="softmax")
 
     return tf.keras.Model(inputs=inputs, outputs=out, name='bidi_LSTM_model')
+
+@gin.configurable
+def conv1d_architecture(input_shape, n_classes, dropout_rate, filters, units):
+    """A conv1d architecture
+
+        Parameters:
+            inputs (list): input dimensions of the model
+            n_classes (int): number of one-hot encoded classes
+            dropout_rate (float): dropout rate
+            filters (int): number of convolutional filters
+
+        Returns:
+            (model): tensorflow keras model with given dimensions
+    """
+    inputs = tf.keras.Input(input_shape)
+    out = custom_layers.conv1d_layer(inputs=inputs, filters=filters)
+    out = custom_layers.conv1d_layer(inputs=out, filters=filters*2)
+    out = custom_layers.max_pool1d_layer(inputs=out, pool_size=3)
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
+
+    out = custom_layers.basic_lstm_layer(inputs=out, units=int(units), return_sequences=True)
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
+    out = custom_layers.basic_lstm_layer(inputs=out, units=int(units/2), return_sequences=True)
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
+
+    out = custom_layers.basic_dense_layer(inputs=out, units=n_classes, activation="softmax")
+
+    return tf.keras.Model(inputs=inputs, outputs=out, name='bidi_LSTM_model')
+
+@gin.configurable
+def variable_lstm_architecture(input_shape, n_classes, dropout_rate, units, n_layers):
+    """A basic LSTM architecture
+
+        Parameters:
+            inputs (list): input dimensions of the model
+            n_classes (int): number of one-hot encoded classes
+            dropout_rate (float): dropout rate
+            n_layers (int): number of LSTM layers
+
+        Returns:
+            (model): tensorflow keras model with given dimensions
+    """
+    inputs = tf.keras.Input(input_shape)
+    out = inputs
+    for i in range(n_layers):
+        out = custom_layers.basic_lstm_layer(inputs=out, units=int(units * (2 ** (n_layers-i-1))), return_sequences=True)
+        out = tf.keras.layers.Dropout(dropout_rate)(out)
+
+    out = custom_layers.basic_dense_layer(inputs=out, units=n_classes*2, activation="tanh")
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
+    out = custom_layers.basic_dense_layer(inputs=out, units=n_classes, activation="softmax")
+
+    return tf.keras.Model(inputs=inputs, outputs=out, name='variable_LSTM_model')

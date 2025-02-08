@@ -99,3 +99,39 @@ def bidirectional_lstm_layer(inputs, units, return_sequences=True, batch_norm=Tr
         out = tf.keras.layers.BatchNormalization()(out)
     out = tf.keras.layers.Activation(activation)(out)
     return out
+
+def conv1d_layer(inputs, filters, batch_norm=True, activation="tanh"):
+    """A basic single CNN layer
+
+        Parameters:
+            inputs (Tensor): input of the LSTM layer
+            filters (int): number of filters used for the layer
+            batch_norm (bool): whether the batch normalization is used or not (Default is True)
+            activation (string): which activation function to use (Default is "tanh")
+
+        Returns:
+            (Tensor): output of the single LSTM layer
+    """
+    out = tf.keras.layers.Conv1D(filters=filters, kernel_size=6, padding="same")(inputs)
+    if batch_norm:
+        out = tf.keras.layers.BatchNormalization()(out)
+    out = tf.keras.layers.Activation(activation)(out)
+    return out
+
+def max_pool1d_layer(inputs, pool_size, batch_norm=True, activation="tanh"):
+    """A basic single CNN layer
+
+        Parameters:
+            inputs (Tensor): input of the LSTM layer
+            pool_size (int): number of pool size used for the layer
+            batch_norm (bool): whether the batch normalization is used or not (Default is True)
+            activation (string): which activation function to use (Default is "tanh")
+
+        Returns:
+            (Tensor): output of the single max pool layer
+    """
+    out = tf.keras.layers.MaxPooling1D(pool_size=pool_size, strides=1, padding="valid", data_format="channels_first")(inputs)
+    if batch_norm:
+        out = tf.keras.layers.BatchNormalization()(out)
+    out = tf.keras.layers.Activation(activation)(out)
+    return out

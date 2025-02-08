@@ -397,8 +397,8 @@ def create_tfrecord_files(data_dir, window_size, window_shift, balance):
         plt.xlabel("Activity class")
         plt.ylabel("Class share")
         plt.legend(loc="upper right")
+        plt.savefig(os.path.join(data_dir_tfrecords, 'histogram.png'), bbox_inches='tight', dpi=300)
         plt.show()
-        plt.savefig(os.path.join(data_dir_tfrecords, 'histogram.png'))
 
     # Create a TensorFlow dataset from features and labels using a sliding window approach
     ds_train = create_tfrecord_dataset(train_features, train_labels, window_size, window_shift)
