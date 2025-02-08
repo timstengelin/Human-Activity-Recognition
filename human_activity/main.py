@@ -51,4 +51,5 @@ def main(argv):
         print("Invalid arguments")
 
 if __name__ == "__main__":
-    app.run(main)
+    args = sys.argv[1:]
+    main(args)
