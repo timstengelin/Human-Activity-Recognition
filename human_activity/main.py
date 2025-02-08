@@ -1,27 +1,12 @@
 import gin
-import logging
-from absl import app, flags
-
+import sys
 from train import training
 from evaluation.eval import evaluation
-from input_pipeline import datasets
-from utils import utils_params, utils_misc
-import models.architectures as architectures
-import tensorflow as tf
+from utils import utils_params
 import tune as tuning
 
-@gin.configurable
-def train_tune(tune, evaluate, run_paths):
-    if tune:
-        tuning.tune(run_paths)
-    else:
-        if evaluate:
-            evaluation(run_paths)
-        else:
-            training(run_paths)
-
 def main(argv):
-    # collect data from gin config file
+    # collect data from gin configuration file
     gin.parse_config_files_and_bindings(['configs/config.gin'], [])
 
     # generate folder structures for all model and logging data
@@ -30,7 +15,14 @@ def main(argv):
     # set config path
     utils_params.save_config(run_paths['path_gin'], gin.config_str())
 
-    train_tune(run_paths=run_paths)
+    if "--train" in argv:
+        training(run_paths)
+    elif "--evaluate" in argv:
+        evaluation(run_paths)
+    elif "--tune" in argv:
+        tuning.tune(run_paths)
+    else:
+        print("Invalid arguments")
 
 if __name__ == "__main__":
     app.run(main)
