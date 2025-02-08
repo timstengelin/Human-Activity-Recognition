@@ -44,7 +44,7 @@ def main(argv):
         run_paths = utils_params.gen_run_folder(path_model_id="Tuning")
         # set config path
         utils_params.save_config(run_paths['path_gin'], gin.config_str())
-        #run tuning process
+        # run tuning process
         tuning.tune(run_paths=run_paths)
 
     else:
