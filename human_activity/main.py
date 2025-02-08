@@ -1,3 +1,4 @@
+"""Main file for human_activity."""
 import gin
 import sys
 from train import training
@@ -5,19 +6,36 @@ from evaluation.eval import evaluation
 from utils import utils_params
 import tune as tuning
 
+
 def valid_model(model):
-    available_models = ["LSTM_model", "bidi_LSTM_model", "GRU_model", "RNN_model",
-                        "Conv1d_model", "variable_LSTM_model"]
+    """Implement check for model name.
+
+    Parameters:
+        model (string): model name
+
+    Returns:
+        True/False (Tensor): valid model
+    """
+    available_models = ["LSTM_model", "bidi_LSTM_model", "GRU_model",
+                        "RNN_model", "Conv1d_model", "variable_LSTM_model"]
     # Check whether a implemented model is choosen and give feedback
     if model in available_models:
         return True
     else:
-        print("Invalid model choosen. Choose from the following: " + str(available_models))
+        print("Invalid model choosen. Choose from the following: " +
+              str(available_models))
         return False
 
+
 def main(argv):
+    """Main function.
+
+    Parameters:
+        argv (array): array with command line arguments
+    """
     # collect data from gin configuration file
-    gin.parse_config_files_and_bindings(['configs/config.gin'], [])
+    gin.parse_config_files_and_bindings(['configs/config.gin'],
+                                        [])
 
     if "--train" in argv:
         model = argv[argv.index("--train") + 1]
@@ -49,6 +67,7 @@ def main(argv):
 
     else:
         print("Invalid arguments")
+
 
 if __name__ == "__main__":
     args = sys.argv[1:]
