@@ -17,8 +17,7 @@ def create_ensemble_model(models, run_paths, model_names):
     '''
 
     path_model_root = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), os.pardir, os.pardir, '05_Workspace',
-        'experiments'))
+        os.path.dirname(__file__), os.pardir, os.pardir, 'experiments'))
     helper_path_list = [
         os.path.join(path_model_root, model_names[0], 'ckpts'),
         os.path.join(path_model_root, model_names[1], 'ckpts'),
