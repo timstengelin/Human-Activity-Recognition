@@ -10,19 +10,13 @@ from train import create_model
 import wandb
 
 @gin.configurable
-def tune(run_paths, key, parameters_dict):
+def tune(run_paths, key, sweep_config, parameters_dict):
     utils_misc.set_loggers(run_paths['path_logs_tune'], logging.INFO)
     # wandb login with given key
     wandb.login(key=key)
 
-    sweep_config = {
-        'method': 'random',
-        'metric': {
-            'name': 'acc_val',
-            'goal': 'maximize'
-        },
-        'parameters' : parameters_dict
-    }
+    sweep_config['parameters'] = parameters_dict
+
     # create wandb conf and obj
     sweep_id = wandb.sweep(sweep=sweep_config, project="Activity Recognition HAPT")
 

@@ -45,9 +45,20 @@ create_tfrecord_files.balance = False
 # Visualization
 visualization.range_time = [1000,20000]
 
-# Tuning
+# ---------- PARAMETERS FOR MODE TUNE ----------
+
+# WANDB KEY (add your personal key here)
 tune.key = '8478ddb0f2c0978283abcb1e18db08bebd904d3f'
 
+# WANDB SWEEP CONFIGURATION
+tune.sweep_config = {
+        'method': 'random',
+        'metric': {
+            'name': 'acc_val',
+            'goal': 'maximize'
+        }
+
+# HYPERPARAMETERS
 tune.parameters_dict = {
         'steps': {
             'values': [1000, 2000, 3000, 4000, 5000, 10000]
