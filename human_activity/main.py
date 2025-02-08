@@ -5,25 +5,48 @@ from evaluation.eval import evaluation
 from utils import utils_params
 import tune as tuning
 
+def valid_model(model):
+    available_models = ["LSTM_model", "bidi_LSTM_model", "GRU_model", "RNN_model",
+                        "Conv1d_model", "variable_LSTM_model"]
+    # Check whether a implemented model is choosen and give feedback
+    if model in available_models:
+        return True
+    else:
+        print("Invalid model choosen. Choose from the following: " + str(available_models))
+        return False
+
 def main(argv):
     # collect data from gin configuration file
     gin.parse_config_files_and_bindings(['configs/config.gin'], [])
 
-    # generate folder structures for all model and logging data
-    run_paths = utils_params.gen_run_folder()
-
-    # set config path
-    utils_params.save_config(run_paths['path_gin'], gin.config_str())
-
     if "--train" in argv:
         model = argv[argv.index("--train") + 1]
-        training(run_paths=run_paths, model_name=model)
+        if valid_model(model):
+            # generate folder structures for all model and logging data
+            run_paths = utils_params.gen_run_folder(path_model_id=model)
+            # set config path
+            utils_params.save_config(run_paths['path_gin'], gin.config_str())
+            # run training process
+            training(run_paths=run_paths, model_name=model)
+
     elif "--evaluate" in argv:
-        evaluation(run_paths)
         model = argv[argv.index("--evaluate") + 1]
-        evaluation(run_paths=run_paths, model_name=model)
+        if valid_model(model):
+            # generate folder structures for all model and logging data
+            run_paths = utils_params.gen_run_folder(path_model_id=model)
+            # set config path
+            utils_params.save_config(run_paths['path_gin'], gin.config_str())
+            # run evaluation process
+            evaluation(run_paths=run_paths, model_name=model)
+
     elif "--tune" in argv:
+        # generate folder structures for all model and logging data
+        run_paths = utils_params.gen_run_folder(path_model_id="Tuning")
+        # set config path
+        utils_params.save_config(run_paths['path_gin'], gin.config_str())
+        #run tuning process
         tuning.tune(run_paths=run_paths)
+
     else:
         print("Invalid arguments")
 
