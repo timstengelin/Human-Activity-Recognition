@@ -16,11 +16,14 @@ def main(argv):
     utils_params.save_config(run_paths['path_gin'], gin.config_str())
 
     if "--train" in argv:
-        training(run_paths)
+        model = argv[argv.index("--train") + 1]
+        training(run_paths=run_paths, model_name=model)
     elif "--evaluate" in argv:
         evaluation(run_paths)
+        model = argv[argv.index("--evaluate") + 1]
+        evaluation(run_paths=run_paths, model_name=model)
     elif "--tune" in argv:
-        tuning.tune(run_paths)
+        tuning.tune(run_paths=run_paths)
     else:
         print("Invalid arguments")
 
