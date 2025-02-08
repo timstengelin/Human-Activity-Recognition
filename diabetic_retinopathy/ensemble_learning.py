@@ -13,7 +13,7 @@ def create_ensemble_model(models, run_paths):
 
     '''
 
-    # Needs to be adapted in case of other than local execution!
+    # Paths needs to be adapted
     path_model_root = os.path.abspath(os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, '05_Workspace',
         'experiments'))
