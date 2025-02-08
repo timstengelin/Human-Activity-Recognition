@@ -477,9 +477,12 @@ def create_tfrecord_files(data_dir, window_size, window_shift, balance):
 
     # print histogram if configured
     if balance:
-        # arguments are passed to np.histogram
-        plt.hist(train_labels, bins=np.arange(1, 14), density=True)
-        plt.title("Histogram for activity class distribution")
+        labels = [train_labels, val_labels, test_labels]
+        plt.hist(labels, bins=np.arange(1,14), density=True, label=["train", "validation", "test"])
+        plt.xlabel("Activity class")
+        plt.ylabel("Class share")
+        plt.legend(loc="upper right")
+        plt.savefig(os.path.join(data_dir_tfrecords, 'histogram.png'), bbox_inches='tight', dpi=300)
         plt.show()
 
     # Create a TensorFlow dataset from features and labels using a sliding

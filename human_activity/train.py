@@ -4,38 +4,22 @@ import logging
 import wandb
 import evaluation.metrics as metrics
 import numpy as np
-
-# calculated weigths from class distribution in training labels
-weight=np.array([1., 1.06206897, 1.15789474, 1.01986755, 0.91666667, 0.93902439,
-                 11.84615385, 15.4, 9.625,11., 7.7, 11.])
-
-def crossentropy(labels, predictions, weights, *args, **kwargs):
-    # scale predictions so that the class probas of each sample sum to 1
-    predictions /= tf.keras.backend.sum(predictions, axis=-1, keepdims=True)
-    # clip to prevent NaN's and Inf's
-    predictions = tf.keras.backend.clip(predictions, tf.keras.backend.epsilon(), 1 - tf.keras.backend.epsilon())
-    # calc
-    loss = labels * tf.keras.backend.log(predictions) * weights
-    loss = -tf.keras.backend.sum(loss, -1)
-
-    return loss
+from utils import utils_misc
+from input_pipeline import datasets
+import models.architectures as architectures
+from evaluation.metrics import crossentropy
 
 @gin.configurable
 class Trainer(object):
     def __init__(self, model, ds_train, ds_val, learning_rate, run_paths,
-                 total_steps, log_interval, ckpt_interval, tuning=False):
-        # Loss objective
-        # self.loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
-        # self.loss_object = crossentropy()
+                 total_steps, log_interval, ckpt_interval, class_weight, tuning=False):
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
         # Metrics
         self.train_loss = tf.keras.metrics.Mean(name='train_loss')
-        # self.train_accuracy = tf.keras.metrics.CategoricalAccuracy(name='train_accuracy')
         self.train_accuracy = metrics.Categorical_Accuracy()
 
         self.val_loss = tf.keras.metrics.Mean(name='val_loss')
-        # self.val_accuracy = tf.keras.metrics.CategoricalAccuracy(name='val_accuracy')
         self.val_accuracy = metrics.Categorical_Accuracy()
 
         # attributes
@@ -47,6 +31,7 @@ class Trainer(object):
         self.log_interval = log_interval
         self.ckpt_interval = ckpt_interval
         self.tuning = tuning
+        self.class_weight = np.array(class_weight)
 
         # Checkpoint Manager
         if not tuning:
@@ -74,8 +59,7 @@ class Trainer(object):
             # training=True is only needed if there are layers with different
             # behavior during training versus inference (e.g. Dropout).
             predictions = self.model(data, training=True)
-            # loss = self.loss_object(labels, predictions, sample_weight=sample_weight)
-            loss = crossentropy(labels, predictions, weight)
+            loss = crossentropy(labels, predictions, self.class_weight)
         gradients = tape.gradient(loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
 
@@ -96,8 +80,7 @@ class Trainer(object):
         # training=False is only needed if there are layers with different
         # behavior during training versus inference (e.g. Dropout).
         predictions = self.model(data, training=False)
-        # t_loss = self.loss_object(labels, predictions, sample_weight=sample_weight)
-        t_loss = crossentropy(labels, predictions, weight)
+        t_loss = crossentropy(labels, predictions, self.class_weight)
 
         self.val_loss(t_loss)
         self.val_accuracy(labels, predictions)
@@ -176,3 +159,40 @@ class Trainer(object):
                     self.ckpt_manager.save()
                     logging.info(f'Finished training after {step} steps.')
                 return self.val_accuracy.result().numpy()
+
+def create_model(model_name, feature_shape, label_shape):
+    if model_name == "LSTM_model":
+        model = architectures.lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "bidi_LSTM_model":
+        model = architectures.bidi_lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "GRU_model":
+        model = architectures.gru_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "RNN_model":
+        model = architectures.rnn_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "Conv1d_model":
+        model = architectures.conv1d_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    elif model_name == "variable_LSTM_model":
+        model = architectures.variable_lstm_architecture(input_shape=feature_shape, n_classes=label_shape[-1])
+    return model
+@gin.configurable
+def training(run_paths, model_name):
+    # set logger for training
+    utils_misc.set_loggers(run_paths['path_logs_train'], logging.INFO)
+
+    # call of data pipeline to retrieve train, validation and test dataset
+    ds_train, ds_val, ds_test, ds_info = datasets.load()
+
+    # get shape from actual dataset
+    feature_shape = None
+    label_shape = None
+    for data, label in ds_train:
+        feature_shape = data.shape[1:]
+        label_shape = label.shape[1:]
+        break
+
+    model = create_model(model_name=model_name, feature_shape=feature_shape, label_shape=label_shape)
+
+    # initialize Trainer class based on given model and datasets
+    trainer = Trainer(model=model, ds_train=ds_train, ds_val=ds_val, run_paths=run_paths)
+    for _ in trainer.train():
+        continue
