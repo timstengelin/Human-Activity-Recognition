@@ -6,7 +6,7 @@ main_logic.model_names = ['EfficientNetB3_pretrained']
     # Sets the name of the model to be worked with
     # - e.g., ['MobileNetV2'], for mode train, tune or evaluate
     # - e.g., ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained',
-               'DenseNet201_pretrained'], for mode create_ensemble_model
+    #         'DenseNet201_pretrained'], for mode create_ensemble_model
     # - e.g., ['ComposedModel'], for mode evaluate
 main_logic.mode = 'train'
     # Sets the mode
@@ -48,7 +48,7 @@ densenet201_pretrained.dropout_rate = 0.2
 # -----------------------------------------------------------------------------
 # TRAINING
 # -----------------------------------------------------------------------------
-Trainer.total_steps = 6000
+Trainer.total_steps = 9000
 Trainer.log_interval = 1e2
 Trainer.ckpt_interval = 1000
 Trainer.learning_rate = 1e-5
