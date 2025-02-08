@@ -1,10 +1,6 @@
 # Team 15
-* Florian Schatz  
-  * Mat.-Nr.: TODO
-  * E-Mail: st191622@stud.uni-stuttgart.de
-* Tim Stengelin  
-  * Mat.-Nr.: 3735165
-  * E-Mail: st190770@stud.uni-stuttgart.de
+* Florian Schatz (E-Mail: st191622@stud.uni-stuttgart.de)
+* Tim Stengelin (E-Mail: st190770@stud.uni-stuttgart.de)
 
 # Project I: Diabetic Retinopathty Detection
 Diabetic retinopathy (DR) is a serious ocular condition that can significantly compromise the vision of individuals with diabetes. In this study, we developed multiple detection models based on deep convolutional neural networks and compared their performance. All models were trained using the IDRID dataset. Additionally, we employed data augmentation, transfer learning and ensemble learning techniques, enabling our best model to achieve an accuracy of 84%. Ultimately, our findings suggest that the size of the dataset is the most critical factor influencing detection performance.
