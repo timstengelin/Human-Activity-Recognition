@@ -95,12 +95,7 @@ class Trainer(object):
         """
         # resume the model by continuing training if model is available
         if not self.tuning:
-            self.ckpt.restore(self.ckpt_manager.latest_checkpoint)
-            if self.ckpt_manager.latest_checkpoint:
-                logging.info("Restored training data from {}".format(self.ckpt_manager.latest_checkpoint))
-                self.ckpt.step.assign_add(1)
-            else:
-                logging.info("Starting training for a new model...")
+            logging.info("Starting training for a new model...")
 
         for idx, (data, labels) in enumerate(self.ds_train):
 
