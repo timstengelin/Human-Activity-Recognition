@@ -1,20 +1,24 @@
-# ---------- MAIN FUNCTIONALITY ----------
+# -----------------------------------------------------------------------------
+# MAIN FUNCTIONALITY
+# -----------------------------------------------------------------------------
 
-main_logic.model_names = ['MobileNetV2']
+main_logic.model_names = ['EfficientNetB3_pretrained']
     # Sets the name of the model to be worked with
     # - e.g., ['MobileNetV2'], for mode train, tune or evaluate
-    # - e.g., ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained'],
-    #   for mode create_ensemble_model
-    # - e.g., ['MobileNetV2_AND_EfficientNetB0_AND_EfficientNetB3_AND_DenseNet201'], for mode evaluate
-main_logic.mode = 'evaluate'
+    # - e.g., ['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained',
+    #         'DenseNet201_pretrained'], for mode create_ensemble_model
+    # - e.g., ['ComposedModel'], for mode evaluate
+main_logic.mode = 'train'
     # Sets the mode
     # - 'train' := A model is trained
-    # - 'create_ensemble_model' := Multiple models are combined to one ensemble model
+    # - 'create_ensemble_model' := Multiple models combined
     # - 'tune' := A model is tuned
     # - 'evaluate' := A model is evaluated
 
 
-# ---------- ARCHITECTURE PARAMETERS FOR MODES TRAIN, CREATE ENSEMBLE MODEL AND EVALUATE ----------
+# -----------------------------------------------------------------------------
+# ARCHITECTURE PARAMETERS FOR MODES TRAIN, CREATE ENSEMBLE MODEL AND EVALUATE
+# -----------------------------------------------------------------------------
 
 # MobileNetV2
 mobilenet_v2.alpha = 1.0
@@ -34,36 +38,51 @@ densenet201_pretrained.trainable_rate = 1
 densenet201_pretrained.dropout_rate = 0.2
 
 
-# ---------- ARCHITECTURE PARAMETERS FOR MODE TUNE ----------
-# Directly modifiable in tune_wand.py
+# -----------------------------------------------------------------------------
+# ARCHITECTURE PARAMETERS FOR MODE TUNE
+# -----------------------------------------------------------------------------
+
+# Directly modifiable in tune_wandb.py
 
 
-# ---------- TRAINING ----------
+# -----------------------------------------------------------------------------
+# PARAMETERS FOR MODE CREATE ENSEMBLE MODEL
+# -----------------------------------------------------------------------------
 
-Trainer.total_steps = 15000
+create_ensemble_model.model_names = ['mobilenetv2_withAug',
+                                     'efficientnetb0_withAug',
+                                     'efficientnetb3',
+                                     'densenet201']
+
+
+# -----------------------------------------------------------------------------
+# TRAINING
+# -----------------------------------------------------------------------------
+Trainer.total_steps = 9000
 Trainer.log_interval = 1e2
 Trainer.ckpt_interval = 1000
 Trainer.learning_rate = 1e-5
 
 
-# ---------- FOLDER/PATH GENERATION ----------
+# -----------------------------------------------------------------------------
+# FOLDER/PATH GENERATION
+# -----------------------------------------------------------------------------
 
-gen_run_folder.path_model_id = 'mobilenetv2_withoutAug'
+gen_run_folder.path_model_id = 'efficientnetb3'
     # Specifies the name of the experiment
-gen_run_folder.new_model = False
-    # Determines whether a new model is to be trained; Relevant for modes train and evaluate
+gen_run_folder.new_model = True
+    # Determines whether a new model is to be trained;
+    # Relevant for modes train and evaluate
     # - True := A new model is trained from scratch
     # - False := A model from an existing experiment is trained further
 
 
-# ---------- INPUT PIPELINE ----------
+# -----------------------------------------------------------------------------
+# INPUT PIPELINE
+# -----------------------------------------------------------------------------
 
 load.img_dir = '/misc/home/data/IDRID_dataset/images'
-#load.img_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/images'
-    # For local execution on Tim's PC
 load.csv_dir = '/misc/home/data/IDRID_dataset/labels'
-#load.csv_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/IDRID_dataset/IDRID_dataset/labels'
-    # For local execution on Tim's PC
 load.load_record = False # If False, TFRecord files are created
 load.resampling = True
 load.train_val_split = 0.8
