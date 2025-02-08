@@ -17,10 +17,10 @@ class Trainer(object):
 
         # Metrics
         self.train_loss = tf.keras.metrics.Mean(name='train_loss')
-        self.train_accuracy = metrics.Categorical_Accuracy()
+        self.train_accuracy = metrics.CategoricalAccuracy()
 
         self.val_loss = tf.keras.metrics.Mean(name='val_loss')
-        self.val_accuracy = metrics.Categorical_Accuracy()
+        self.val_accuracy = metrics.CategoricalAccuracy()
 
         # attributes
         self.model = model
