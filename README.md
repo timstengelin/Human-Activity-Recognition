@@ -34,7 +34,30 @@ Test accuracies for different model variants:
 The test accuracy of the composed model from MobileNetV2, EfficientNetB0 with Augmentation and pre-trained EfficientNetB3, DenseNet201 results in: 0.80
 
 ## How to run the Code?
-TODO
+* **Step 0:** Download the Indian Diabetic Retinopathy Image Dataset (IDRiD) from [here](https://ieee-dataport.org/open-access/indian-diabetic-retinopathy-image-dataset-idrid).
+* **Step 1:** Adjust the paths of `load.img_dir` and `load.csv_dir` in `config.gin` to the images/labels folder of the data directory, the IDRiD dataset.
+* **Step 2a:** Configure the program manually to be able to use the full range of functions.
+  * **Step 2a.a:** Train a model
+    * **Step 2a.a.1:** Set the parameter `main_logic.model_names` in `config.gin` to `['MobileNetV2']`/`['EfficientNetB0']`/`['EfficientNetB3_pretrained']`/`['DenseNet201_pretrained']` to train the model variant MobileNetV2/EfficientNetB0/EfficientNetB3/DenseNet201. The latter two model variants use a transfer learning apprach.
+    * **Step 2a.a.2:** Set the parameter `main_logic.mode` in `config.gin` to `'train'`
+    * **Step 2a.a.3:** Set the remaining parameters in `config.gin`.
+  * **Step 2a.b:** Evaluate a model
+    * **Step 2a.b.1:** Set the parameter `main_logic.model_names` in `config.gin` to `['MobileNetV2']`/`['EfficientNetB0']`/`['EfficientNetB3_pretrained']`/`['DenseNet201_pretrained']`/`['ComposedModel']` to evaluate the model variant MobileNetV2/EfficientNetB0/EfficientNetB3/DenseNet201 or a composed model. The model you want to evaluate has to be trained already!
+    * **Step 2a.b.2:** Set the parameter `main_logic.mode` in `config.gin` to `'evaluate'`
+    * **Step 2a.b.3:** Set the remaining parameters in `config.gin`.
+  * **Step 2a.c:** Tune a model
+    * **Step 2a.c.1:** Set the parameter `main_logic.model_names` in `config.gin` to `['MobileNetV2']`/`['EfficientNetB0']`/`['EfficientNetB3_pretrained']`/`['DenseNet201_pretrained']` to tune the model variant MobileNetV2/EfficientNetB0/EfficientNetB3/DenseNet201.  The model you want to tune has to be trained already!
+    * **Step 2a.c.2:** Set the parameter `main_logic.mode` in `config.gin` to `'tune'`
+    * **Step 2a.c.3:** Set the remaining parameters in `config.gin`.
+  * **Step 2a.d:** Create a composed model
+    * **Step 2a.d.1:** E.g., set the parameter `main_logic.model_names` in `config.gin` to `['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained']` to create a composed model from the model variants MobileNetV2, EfficientNetB0, EfficientNetB3, DenseNet201.  The models you want to compose have to be trained already/
+    * **Step 2a.d.2:** Set the parameter `main_logic.mode` in `config.gin` to `'create_ensemble_model'`
+    * **Step 2a.d.3:** Set the remaining parameters in `config.gin`.
+* **Step 2b:** Use a Quickstart configuration to train or evaluate the EfficientNetB3 model and get the best results we achieved in this project.
+  * **Step 2b.a:** Run `run_quickstart_train_efficientnetb3.sh` to train the EfficientNetB3 model variant.
+  * **Step 2b.b:** Run `run_quickstart_evaluate_efficientnetb3.sh` to evaluate the EfficientNetB3 model variant you trained in Step2b.a. 
+
+Note: Sequences of letters, e.g. 2a, 2b, represent alternatives. Number sequences, e.g. 0., 1., represent sequences!
 
 # Project II: Human Activity Recognition
 TODO
