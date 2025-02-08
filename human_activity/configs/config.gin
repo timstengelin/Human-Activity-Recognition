@@ -62,6 +62,7 @@ tune.sweep_config = {
             'name': 'acc_val',
             'goal': 'maximize'
         }
+    }
 
 # HYPERPARAMETERS
 tune.parameters_dict = {
