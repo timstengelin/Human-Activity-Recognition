@@ -216,7 +216,7 @@ def prepare_dataset(dataset, augmentation, batch_size, caching, repeat):
             outputs = tf.cond(
                 pred=tf.logical_and(apply_layer, training),
                 true_fn=lambda: self.layer(inputs),
-                false_fn=lambda: tf.cast(inputs, dtype=tf.float32),
+                false_fn=lambda: inputs,
             )
             return outputs
 
