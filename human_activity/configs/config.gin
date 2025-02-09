@@ -1,7 +1,7 @@
 # ---------- ARCHITECTURE PARAMETERS FOR TRAIN, EVALUATE ----------
 
 # LSTM ARCHITECTURE
-lstm_architecture.dropout_rate = 0.15
+lstm_architecture.dropout_rate = 0.5
 lstm_architecture.units = 64
 
 # GRU ARCHITECTURE
@@ -28,14 +28,15 @@ variable_lstm_architecture.n_layers = 3
 
 # ---------- LOCAL TRAINING PARAMETERS ----------
 
-Trainer.total_steps = 1e3
+Trainer.total_steps = 1e4
 Trainer.log_interval = 1e1
 Trainer.ckpt_interval = 1e1
-Trainer.learning_rate = 1e-4
+Trainer.learning_rate = 1e-3
 
 # ---------- CLASS BALANCING ----------
 
-Trainer.class_weight = [1., 1.06206897, 1.15789474, 1.01986755, 0.91666667, 0.93902439, 11.84615385, 15.4, 9.625,11., 7.7, 11.]
+Trainer.class_weight = [1., 1.06206897, 1.15789474, 1.01986755, 0.91666667, 0.93902439, 11.84615385,
+                        15.4, 9.625,11., 7.7, 11.]
 
 # ---------- INPUT PIPELINE PARAMETERS ----------
 
