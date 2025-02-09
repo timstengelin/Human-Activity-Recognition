@@ -126,6 +126,7 @@ def visualization(model, run_paths, dataset, range_time):
                               gyro_y[range_time[0]:range_time[1]],
                               gyro_z[range_time[0]:range_time[1]])
     prediction = prediction[range_time[0]:range_time[1]]
+    label_sum = label_sum[range_time[0]:range_time[1]]
     label = label[range_time[0]:range_time[1]]
 
     # plot the data as well as  their predictions and labels
