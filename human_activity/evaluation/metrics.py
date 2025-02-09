@@ -27,12 +27,20 @@ class ConfusionMatrix(tf.keras.metrics.Metric):
             labels (Tensor): data with true classes
             predictions (Tensor): data with predicted classes
         """
+        # calculate sum over one-hot-coding to get indices of
+        # all all-zero entrie
+        labels_sum = tf.reshape(tf.reduce_sum(labels, axis=-1), [-1])
+        index = tf.where(labels_sum != 0)
+
         # Convert predictions to a 1D array of predicted class indices
         predictions = tf.reshape(tf.math.argmax(predictions, axis=-1),
                                  shape=(-1, 1))
-        predictions = tf.cast(predictions, dtype=tf.float32)
         labels = tf.reshape(tf.math.argmax(labels, axis=-1),
-                            shape=(-1, 1))
+                            [-1])
+
+        # delete the samples without classification
+        labels = tf.gather(labels, index)
+        predictions = tf.gather(predictions, index)
 
         # Compute the confusion matrix and update the state
         self.binary_confusion_matrix = tf.math.confusion_matrix(
