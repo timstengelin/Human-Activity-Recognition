@@ -48,7 +48,7 @@ The test accuracy of the composed model from MobileNetV2, EfficientNetB0 with Au
     * **Step 2a.c.2:** Set the parameter `main_logic.mode` in `config.gin` to `'tune'`
     * **Step 2a.c.3:** Set the remaining parameters in `config.gin`.
   * **Step 2a.d:** Create a composed model
-    * **Step 2a.d.1:** E.g., set the parameter `main_logic.model_names` in `config.gin` to `['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained']` to create a composed model from the model variants MobileNetV2, EfficientNetB0, EfficientNetB3, DenseNet201.  The models you want to compose have to be trained already/
+    * **Step 2a.d.1:** E.g., set the parameter `main_logic.model_names` in `config.gin` to `['MobileNetV2', 'EfficientNetB0', 'EfficientNetB3_pretrained', 'DenseNet201_pretrained']` to create a composed model from the model variants MobileNetV2, EfficientNetB0, EfficientNetB3, DenseNet201.  The models you want to compose have to be trained already.
     * **Step 2a.d.2:** Set the parameter `main_logic.mode` in `config.gin` to `'create_ensemble_model'`
     * **Step 2a.d.3:** Set the remaining parameters in `config.gin`.
 * **Step 2b:** Use a Quickstart configuration to train or evaluate the EfficientNetB3 model and get the best results we achieved in this project.
