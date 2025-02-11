@@ -58,7 +58,7 @@ The test accuracy of the composed model from MobileNetV2, EfficientNetB0 with Au
 Note: Sequences of letters, e.g. 2a, 2b, represent alternatives. Number sequences, e.g. 0., 1., represent sequences!
 
 # Project II: Human Activity Recognition
-Human Activity Recognition (HAR) is a area of research in the field of ubiquitous computing and machine learning. It involves the automatic identification of activities performed by individuals through the analysis of data collected from various sensors. This work has the goal to implement, train and evaluate a classifier for those activities. In this study, we utilized multiple detection models based on deep recurrent neural networks and compared their performance. All models were trained using the HAPT dataset. Additionally, we employed hyperparameter optimization, enabling our best model to achieve an accuracy of 93%. Ultimately, our findings suggest the variance of the dataset is the most critical factor influencing detection performance and thus the reworking of the raw data is the most critical part.
+Human Activity Recognition (HAR) is a area of research in the field of ubiquitous computing and machine learning. It involves the automatic identification of activities performed by individuals through the analysis of data collected from various sensors. This work has the goal to implement, train and evaluate a classifier for those activities. In this study, we utilized multiple detection models based on deep recurrent neural networks and compared their performance. All models were trained using the HAPT dataset. Additionally, we employed hyperparameter optimization, enabling our best model to achieve an accuracy of 92%. Ultimately, our findings suggest the variance of the dataset is the most critical factor influencing detection performance and thus the reworking of the raw data is the most critical part.
 
 ## Content
 * **Dataset:** Utilizes the Human Activities and Postural Transitions Dataset (HAPT) containing activity data from 30 volunteers from 19 to 48 years.
@@ -69,7 +69,20 @@ Human Activity Recognition (HAR) is a area of research in the field of ubiquitou
 * **Hyperparameter Tuning:** Enhance the performance of the individual model variants by tuning different aspects like window-size, window-shift and size of the model.
 
 ##  Results
-TODO
+Test accuracies for different model variants (All models include a two layer dense classifier at the end using SoftMax):
+
+| **Architecture Familiy** | **Test Accuracy** |
+|--------------------------|-------------------|
+| LSTM                     | 91.5%             |
+| GRU                      | 91%               |
+| Bidirectional LSTM       | 91.8%             |
+| Conv + LSTM              | 90.6%             |
+
+For the best model, following confusion matrix could be achieved:
+
+BILD Confusion Matrix
+
+With the model, as visible in the picture, a valid clasification of activities could be achieved.
 
 ## How to run the Code?
 TODO
