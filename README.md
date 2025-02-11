@@ -80,9 +80,11 @@ Test accuracies for different model variants (All models include a two layer den
 
 For the best model, following confusion matrix could be achieved:
 
-BILD Confusion Matrix
+![confusion_matrix](https://github.tik.uni-stuttgart.de/iss/dl-lab-24w-team15/assets/8809/d7ccfb92-7b1e-4a89-a9a0-d9da23114cf0)
 
 With the model, as visible in the picture, a valid clasification of activities could be achieved.
+
+![sequence_visualization](https://github.tik.uni-stuttgart.de/iss/dl-lab-24w-team15/assets/8809/7b8dcd0c-9291-49f4-a59c-6e04064e345b)
 
 ## How to run the Code?
 TODO
