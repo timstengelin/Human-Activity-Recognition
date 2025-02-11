@@ -58,10 +58,15 @@ The test accuracy of the composed model from MobileNetV2, EfficientNetB0 with Au
 Note: Sequences of letters, e.g. 2a, 2b, represent alternatives. Number sequences, e.g. 0., 1., represent sequences!
 
 # Project II: Human Activity Recognition
-TODO
+Human Activity Recognition (HAR) is a area of research in the field of ubiquitous computing and machine learning. It involves the automatic identification of activities performed by individuals through the analysis of data collected from various sensors. This work has the goal to implement, train and evaluate a classifier for those activities. In this study, we utilized multiple detection models based on deep recurrent neural networks and compared their performance. All models were trained using the HAPT dataset. Additionally, we employed hyperparameter optimization, enabling our best model to achieve an accuracy of 93%. Ultimately, our findings suggest the variance of the dataset is the most critical factor influencing detection performance and thus the reworking of the raw data is the most critical part.
 
 ## Content
-TODO
+* **Dataset:** Utilizes the Human Activities and Postural Transitions Dataset (HAPT) containing activity data from 30 volunteers from 19 to 48 years.
+* **Input Pipeline:** Employs TFRecord for efficient data loading and processing. Calculate class imbalance within trainig dataset.
+* **Weighted loss:** Calculated class imbalance is used to weight the loss within training, to prevent overfitting on the higher represented classes.
+* **Architecture Families:** Different mix of well known recurrent-NN structures, used for time sequence processing.
+* **Metrics:** Evaluates performance using accuracy, confusion matrix and visualization of sequence classification.
+* **Hyperparameter Tuning:** Enhance the performance of the individual model variants by tuning different aspects like window-size, window-shift and size of the model.
 
 ##  Results
 TODO
