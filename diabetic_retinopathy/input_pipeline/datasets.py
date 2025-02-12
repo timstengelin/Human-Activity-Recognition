@@ -216,7 +216,7 @@ def prepare_dataset(dataset, augmentation, batch_size, caching, repeat):
             outputs = tf.cond(
                 pred=tf.logical_and(apply_layer, training),
                 true_fn=lambda: self.layer(inputs),
-                false_fn=lambda: tf.cast(inputs, dtype=tf.float32),
+                false_fn=lambda: inputs,
             )
             return outputs
 
@@ -232,9 +232,10 @@ def prepare_dataset(dataset, augmentation, batch_size, caching, repeat):
 
     # keras model for data augmentation
     data_augmentation = tf.keras.Sequential([
-        RandomChance(tf.keras.layers.RandomFlip("horizontal_and_vertical"),
-                     0.75),
-        RandomChance(tf.keras.layers.RandomRotation(0.5), 0.5)
+        RandomChance(tf.keras.layers.RandomFlip("horizontal_and_vertical",
+                                                dtype='uint8'), 0.75),
+        RandomChance(tf.keras.layers.RandomRotation(0.5, dtype='uint8'),
+                     0.5)
     ])
 
     if caching:

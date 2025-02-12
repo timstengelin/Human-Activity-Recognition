@@ -42,7 +42,6 @@ Trainer.class_weight = [1., 1.06206897, 1.15789474, 1.01986755, 0.91666667, 0.93
 
 load.name = 'hapt'
 load.data_dir =  '/home/data' # For execution on ISS Server
-#load.data_dir = 'C:/TS/Bildung/EIM/Semester_3/Deep_Learning_Lab/04_Datasets/HAPT_dataset' # For local execution on Tim's computer
 load.tfrecord_files_exist = False # If false, TFRecord file are created for selected window size and window shift
 load.window_size = 250
 load.window_shift = 125
@@ -56,7 +55,7 @@ visualization.range_time = [1000,20000]
 # ---------- PARAMETERS FOR MODE TUNE ----------
 
 # WANDB KEY (add your personal key here)
-tune.key = '8478ddb0f2c0978283abcb1e18db08bebd904d3f'
+tune.key = ''
 
 # WANDB SWEEP CONFIGURATION
 tune.n_runs = 100
