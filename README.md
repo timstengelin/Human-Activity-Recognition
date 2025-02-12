@@ -59,7 +59,7 @@ The test accuracy of the composed model from MobileNetV2, EfficientNetB0 with Au
   * **Step 2.b.a:** Run `run_quickstart_train_efficientnetb3.sh` to train the EfficientNetB3 model variant.
   * **Step 2.b.b:** Run `run_quickstart_evaluate_efficientnetb3.sh` to evaluate the EfficientNetB3 model variant you trained in Step2b.a. 
 
-Note: Sequences of letters, e.g. 2a, 2b, represent alternatives. Number sequences, e.g. 0., 1., represent sequences!
+Note: Sequences of letters, e.g. 2.a, 2.b, represent alternatives. Number sequences, e.g. 0., 1., represent sequences!
 
 # Project II: Human Activity Recognition
 Human Activity Recognition (HAR) is a area of research in the field of ubiquitous computing and machine learning. It involves the automatic identification of activities performed by individuals through the analysis of data collected from various sensors. This work has the goal to implement, train and evaluate a classifier for those activities. In this study, we utilized multiple detection models based on deep recurrent neural networks and compared their performance. All models were trained using the HAPT dataset. Additionally, we employed hyperparameter optimization, enabling our best model to achieve an accuracy of 92%. Ultimately, our findings suggest the variance of the dataset is the most critical factor influencing detection performance and thus the reworking of the raw data is the most critical part.
