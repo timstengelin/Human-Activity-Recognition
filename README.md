@@ -26,7 +26,8 @@ For the best model, following confusion matrix could be achieved:
 
 With the model, as visible in the picture, a valid clasification of activities could be achieved.
 
-![sequence_visualization](https://github.tik.uni-stuttgart.de/iss/dl-lab-24w-team15/assets/8809/7b8dcd0c-9291-49f4-a59c-6e04064e345b)
+![7b8dcd0c-9291-49f4-a59c-6e04064e345b](https://github.com/user-attachments/assets/b10eb19b-87e3-482a-92d9-9da0f134453f)
+
 
 ## How to run the Code?
 * **Step 0:** Download the Human Activities and Postural Transitions Dataset (HAPT) from [here]([https://ieee-dataport.org/open-access/indian-diabetic-retinopathy-image-dataset-idrid](https://www.kaggle.com/datasets/uciml/human-activity-recognition-with-smartphones)).
